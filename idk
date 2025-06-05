@@ -1,106 +1,49 @@
--- Roblox Script: FEX Hub GUI
-local Player = game.Players.LocalPlayer
-local Mouse = Player:GetMouse()
-local ScreenGui = Instance.new("ScreenGui", Player.PlayerGui)
-ScreenGui.Name = "FEXHub"
+-- Script for a basic cool GUI
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Main Frame (Movable)
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 400)
-MainFrame.Position = UDim2.new(0, 50, 0, 50)
-MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-MainFrame.Parent = ScreenGui
-MainFrame.Active = true
-MainFrame.Draggable = true  -- Makes the frame movable
+-- Creating the main frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Position = UDim2.new(0.25, 0, 0.25, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
 
--- Open/Close Buttons
-local openButton = Instance.new("TextButton")
-openButton.Size = UDim2.new(0, 100, 0, 50)
-openButton.Position = UDim2.new(0, 0, 0, -60)
-openButton.Text = "Open"
-openButton.Parent = MainFrame
-openButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+-- Adding a title label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0.2, 0)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.Text = "c00lkids GUI"
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 30
+titleLabel.BackgroundTransparency = 1
+titleLabel.Parent = mainFrame
 
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 100, 0, 50)
-closeButton.Position = UDim2.new(0, 0, 0, -60)
-closeButton.Text = "Close"
-closeButton.Parent = MainFrame
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+-- Adding a cool button
+local coolButton = Instance.new("TextButton")
+coolButton.Size = UDim2.new(0.8, 0, 0.1, 0)
+coolButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+coolButton.Text = "Press Me"
+coolButton.Font = Enum.Font.GothamBold
+coolButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+coolButton.TextSize = 24
+coolButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+coolButton.BorderSizePixel = 0
+coolButton.Parent = mainFrame
 
--- Close function
-closeButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
+-- Button hover effect
+coolButton.MouseEnter:Connect(function()
+    coolButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 end)
 
--- Open function
-openButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = true
+coolButton.MouseLeave:Connect(function()
+    coolButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 end)
 
--- Jump Power Slider
-local jumpSlider = Instance.new("TextBox")
-jumpSlider.Size = UDim2.new(0, 200, 0, 50)
-jumpSlider.Position = UDim2.new(0, 50, 0, 50)
-jumpSlider.PlaceholderText = "Jump Power"
-jumpSlider.Parent = MainFrame
-jumpSlider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-
--- Speed Slider
-local speedSlider = Instance.new("TextBox")
-speedSlider.Size = UDim2.new(0, 200, 0, 50)
-speedSlider.Position = UDim2.new(0, 50, 0, 120)
-speedSlider.PlaceholderText = "Speed"
-speedSlider.Parent = MainFrame
-speedSlider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-
--- RGB Self Button
-local rgbSelfButton = Instance.new("TextButton")
-rgbSelfButton.Size = UDim2.new(0, 200, 0, 50)
-rgbSelfButton.Position = UDim2.new(0, 50, 0, 190)
-rgbSelfButton.Text = "RGB Self"
-rgbSelfButton.Parent = MainFrame
-rgbSelfButton.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
-
--- RGB All Button
-local rgbAllButton = Instance.new("TextButton")
-rgbAllButton.Size = UDim2.new(0, 200, 0, 50)
-rgbAllButton.Position = UDim2.new(0, 50, 0, 260)
-rgbAllButton.Text = "RGB All"
-rgbAllButton.Parent = MainFrame
-rgbAllButton.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
-
--- Jump Power Slider Logic
-jumpSlider.FocusLost:Connect(function()
-    local value = tonumber(jumpSlider.Text)
-    if value then
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
-    end
-end)
-
--- Speed Slider Logic
-speedSlider.FocusLost:Connect(function()
-    local value = tonumber(speedSlider.Text)
-    if value then
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-    end
-end)
-
--- RGB Self Logic
-rgbSelfButton.MouseButton1Click:Connect(function()
-    local function changeColor()
-        while wait(0.1) do
-            game.Players.LocalPlayer.Character.HumanoidRootPart.BrickColor = BrickColor.Random()
-        end
-    end
-    changeColor()
-end)
-
--- RGB All Logic
-rgbAllButton.MouseButton1Click:Connect(function()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player.Character then
-            player.Character.HumanoidRootPart.BrickColor = BrickColor.Random()
-        end
-    end
+-- Button click effect
+coolButton.MouseButton1Click:Connect(function()
+    print("Button Pressed!")
 end)
