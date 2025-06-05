@@ -1,87 +1,119 @@
--- Place this script inside a LocalScript in StarterPlayerScripts or StarterGui
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- Create a ScreenGui to hold the GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "C00lGUI"
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+-- Create GUI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "ModMenuGUI"
+screenGui.ResetOnSpawn = false
 
--- Create the Frame (the window)
-local frame = Instance.new("Frame")
-frame.Name = "C00lFrame"
-frame.Size = UDim2.new(0, 400, 0, 300)
-frame.Position = UDim2.new(0, 100, 0, 100)
-frame.BackgroundColor3 = Color3.fromRGB(173, 216, 230) -- light blue color
-frame.Parent = screenGui
-
--- Create the title label
-local label = Instance.new("TextLabel")
-label.Text = "Welcome to C00l GUI"
-label.Size = UDim2.new(1, 0, 0, 40)
-label.BackgroundTransparency = 1
-label.Font = Enum.Font.Arial
-label.TextSize = 24
-label.TextColor3 = Color3.fromRGB(0, 0, 0)
-label.Parent = frame
-
--- Create Close/Open button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Text = "Close"
+-- Toggle GUI Button
+local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 100, 0, 40)
-toggleButton.Position = UDim2.new(0, 150, 0, 250)
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-toggleButton.Parent = frame
+toggleButton.Position = UDim2.new(0, 20, 0, 20)
+toggleButton.Text = "Open Menu"
+toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
 
--- Create Reset Gravity button
-local resetButton = Instance.new("TextButton")
-resetButton.Text = "Reset Gravity"
-resetButton.Size = UDim2.new(0, 150, 0, 40)
-resetButton.Position = UDim2.new(0, 125, 0, 200)
-resetButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
-resetButton.Parent = frame
+-- Main GUI Frame
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 250, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
+mainFrame.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+mainFrame.Visible = false
+mainFrame.Active = true
+mainFrame.Draggable = true
 
--- Variables for dragging the frame
-local dragging = false
-local dragStart = nil
-local startPos = nil
+-- Title
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "Mod Menu"
+title.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+title.TextColor3 = Color3.new(0, 0, 0)
 
--- Function to handle dragging
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-    end
-end)
+-- Helper function to make buttons
+local function createButton(text, yPos)
+	local button = Instance.new("TextButton", mainFrame)
+	button.Size = UDim2.new(0.8, 0, 0, 40)
+	button.Position = UDim2.new(0.1, 0, yPos, 0)
+	button.Text = text
+	button.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	return button
+end
 
-frame.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
+-- Buttons
+local speedButton = createButton("Change Speed", 0.2)
+local espButton = createButton("Toggle ESP", 0.35)
+local flyButton = createButton("Toggle Fly", 0.5)
+local noclipButton = createButton("Toggle Noclip", 0.65)
 
-frame.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
--- Toggle the window visibility (Open/Close button)
+-- Toggle GUI
+local open = false
 toggleButton.MouseButton1Click:Connect(function()
-    if frame.Visible then
-        frame.Visible = false
-        toggleButton.Text = "Open"
-    else
-        frame.Visible = true
-        toggleButton.Text = "Close"
-    end
+	open = not open
+	mainFrame.Visible = open
+	toggleButton.Text = open and "Close Menu" or "Open Menu"
 end)
 
--- Reset gravity (reset window position)
-resetButton.MouseButton1Click:Connect(function()
-    frame.Position = UDim2.new(0, 100, 0, 100)  -- Reset to the default position
+-- Speed Toggle
+speedButton.MouseButton1Click:Connect(function()
+	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = humanoid.WalkSpeed == 16 and 50 or 16
+	end
 end)
 
--- Set initial state (open the GUI and set the button text to Close)
-frame.Visible = true
-toggleButton.Text = "Close"
+-- ESP Placeholder
+espButton.MouseButton1Click:Connect(function()
+	warn("ESP toggle clicked. Add your ESP logic here.")
+end)
+
+-- Fly Mode
+local flying = false
+local flyVelocity
+
+flyButton.MouseButton1Click:Connect(function()
+	flying = not flying
+	if flying then
+		flyVelocity = Instance.new("BodyVelocity")
+		flyVelocity.Velocity = Vector3.new(0, 0, 0)
+		flyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
+		flyVelocity.Parent = humanoidRootPart
+
+		game:GetService("RunService").RenderStepped:Connect(function()
+			if flying and flyVelocity and player.Character then
+				local direction = Vector3.new()
+				if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + workspace.CurrentCamera.CFrame.LookVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - workspace.CurrentCamera.CFrame.LookVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - workspace.CurrentCamera.CFrame.RightVector end
+				if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + workspace.CurrentCamera.CFrame.RightVector end
+				flyVelocity.Velocity = direction.Unit * 50
+			end
+		end)
+	else
+		if flyVelocity then
+			flyVelocity:Destroy()
+		end
+	end
+end)
+
+-- Noclip Mode
+local noclip = false
+
+noclipButton.MouseButton1Click:Connect(function()
+	noclip = not noclip
+	game:GetService("RunService").Stepped:Connect(function()
+		if noclip and player.Character then
+			for _, part in pairs(player.Character:GetDescendants()) do
+				if part:IsA("BasePart") and part.CanCollide == true then
+					part.CanCollide = false
+				end
+			end
+		end
+	end)
+end)
+
+-- Needed services
+local UserInputService = game:GetService("UserInputService")
