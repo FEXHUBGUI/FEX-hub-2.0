@@ -5,7 +5,7 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
 -- Create GUI
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "ModMenuGUI"
+screenGui.Name = "C00l GUI"
 screenGui.ResetOnSpawn = false
 
 -- Toggle GUI Button
