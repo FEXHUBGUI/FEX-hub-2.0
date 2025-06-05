@@ -1,110 +1,106 @@
--- Place this script in a LocalScript inside the ScreenGui
+-- Roblox Script: FEX Hub GUI
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local ScreenGui = Instance.new("ScreenGui", Player.PlayerGui)
+ScreenGui.Name = "FEXHub"
 
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-local flying = false
-local flySpeed = 50  -- Change fly speed if needed
-local screenGuiVisible = true
+-- Main Frame (Movable)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0, 50, 0, 50)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.Parent = ScreenGui
+MainFrame.Active = true
+MainFrame.Draggable = true  -- Makes the frame movable
 
--- Create the GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
--- Create the Fly Button
-local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0, 200, 0, 50)
-flyButton.Position = UDim2.new(0.5, -100, 0.8, -25)
-flyButton.Text = "Fly"
-flyButton.Parent = screenGui
-
--- Create the Open Button
+-- Open/Close Buttons
 local openButton = Instance.new("TextButton")
-openButton.Size = UDim2.new(0, 200, 0, 50)
-openButton.Position = UDim2.new(0.5, -100, 0.9, -25)
-openButton.Text = "Open GUI"
-openButton.Parent = screenGui
+openButton.Size = UDim2.new(0, 100, 0, 50)
+openButton.Position = UDim2.new(0, 0, 0, -60)
+openButton.Text = "Open"
+openButton.Parent = MainFrame
+openButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
--- Create the Close Button
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 200, 0, 50)
-closeButton.Position = UDim2.new(0.5, -100, 0.9, -25)
-closeButton.Text = "Close GUI"
-closeButton.Parent = screenGui
-closeButton.Visible = false  -- Initially, the Close button is hidden
+closeButton.Size = UDim2.new(0, 100, 0, 50)
+closeButton.Position = UDim2.new(0, 0, 0, -60)
+closeButton.Text = "Close"
+closeButton.Parent = MainFrame
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
--- Function to toggle flying
-local function toggleFly()
-    if flying then
-        flying = false
-        player.Character.Humanoid.PlatformStand = false  -- Disable flying
-    else
-        flying = true
-        player.Character.Humanoid.PlatformStand = true  -- Enable flying
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)  -- Max force to keep flying
-        bodyVelocity.Velocity = Vector3.new(0, flySpeed, 0)  -- Set flying speed
-        bodyVelocity.Parent = player.Character.HumanoidRootPart
-
-        -- Handle flying movement (WASD + space for up and shift for down)
-        game:GetService("RunService").Heartbeat:Connect(function()
-            if flying and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local bodyVelocity = player.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity")
-                if bodyVelocity then
-                    local velocity = Vector3.new()
-
-                    -- Basic controls (WASD + Space and Shift)
-                    if userInputService:IsKeyDown(Enum.KeyCode.W) then
-                        velocity = velocity + player.Character.HumanoidRootPart.CFrame.LookVector * flySpeed
-                    end
-                    if userInputService:IsKeyDown(Enum.KeyCode.A) then
-                        velocity = velocity - player.Character.HumanoidRootPart.CFrame.RightVector * flySpeed
-                    end
-                    if userInputService:IsKeyDown(Enum.KeyCode.S) then
-                        velocity = velocity - player.Character.HumanoidRootPart.CFrame.LookVector * flySpeed
-                    end
-                    if userInputService:IsKeyDown(Enum.KeyCode.D) then
-                        velocity = velocity + player.Character.HumanoidRootPart.CFrame.RightVector * flySpeed
-                    end
-                    if userInputService:IsKeyDown(Enum.KeyCode.Space) then
-                        velocity = velocity + Vector3.new(0, flySpeed, 0)
-                    end
-                    if userInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                        velocity = velocity - Vector3.new(0, flySpeed, 0)
-                    end
-
-                    -- Apply the new velocity
-                    bodyVelocity.Velocity = velocity
-                end
-            end
-        end)
-    end
-end
-
--- Connect the Fly button to the toggle function
-flyButton.MouseButton1Click:Connect(function()
-    toggleFly()
-end)
-
--- Function to open the GUI
-local function openGui()
-    screenGui.Visible = true
-    openButton.Visible = false
-    closeButton.Visible = true
-end
-
--- Function to close the GUI
-local function closeGui()
-    screenGui.Visible = false
-    openButton.Visible = true
-    closeButton.Visible = false
-end
-
--- Connect Open Button to open the GUI
-openButton.MouseButton1Click:Connect(function()
-    openGui()
-end)
-
--- Connect Close Button to close the GUI
+-- Close function
 closeButton.MouseButton1Click:Connect(function()
-    closeGui()
+    MainFrame.Visible = false
+end)
+
+-- Open function
+openButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+end)
+
+-- Jump Power Slider
+local jumpSlider = Instance.new("TextBox")
+jumpSlider.Size = UDim2.new(0, 200, 0, 50)
+jumpSlider.Position = UDim2.new(0, 50, 0, 50)
+jumpSlider.PlaceholderText = "Jump Power"
+jumpSlider.Parent = MainFrame
+jumpSlider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+
+-- Speed Slider
+local speedSlider = Instance.new("TextBox")
+speedSlider.Size = UDim2.new(0, 200, 0, 50)
+speedSlider.Position = UDim2.new(0, 50, 0, 120)
+speedSlider.PlaceholderText = "Speed"
+speedSlider.Parent = MainFrame
+speedSlider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+
+-- RGB Self Button
+local rgbSelfButton = Instance.new("TextButton")
+rgbSelfButton.Size = UDim2.new(0, 200, 0, 50)
+rgbSelfButton.Position = UDim2.new(0, 50, 0, 190)
+rgbSelfButton.Text = "RGB Self"
+rgbSelfButton.Parent = MainFrame
+rgbSelfButton.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+
+-- RGB All Button
+local rgbAllButton = Instance.new("TextButton")
+rgbAllButton.Size = UDim2.new(0, 200, 0, 50)
+rgbAllButton.Position = UDim2.new(0, 50, 0, 260)
+rgbAllButton.Text = "RGB All"
+rgbAllButton.Parent = MainFrame
+rgbAllButton.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
+
+-- Jump Power Slider Logic
+jumpSlider.FocusLost:Connect(function()
+    local value = tonumber(jumpSlider.Text)
+    if value then
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
+    end
+end)
+
+-- Speed Slider Logic
+speedSlider.FocusLost:Connect(function()
+    local value = tonumber(speedSlider.Text)
+    if value then
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end
+end)
+
+-- RGB Self Logic
+rgbSelfButton.MouseButton1Click:Connect(function()
+    local function changeColor()
+        while wait(0.1) do
+            game.Players.LocalPlayer.Character.HumanoidRootPart.BrickColor = BrickColor.Random()
+        end
+    end
+    changeColor()
+end)
+
+-- RGB All Logic
+rgbAllButton.MouseButton1Click:Connect(function()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player.Character then
+            player.Character.HumanoidRootPart.BrickColor = BrickColor.Random()
+        end
+    end
 end)
