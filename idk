@@ -1,14 +1,15 @@
--- Script for a basic cool GUI
+-- Script for a basic cool GUI with Open and Close buttons
 local player = game.Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Creating the main frame
+-- Creating the main frame (hidden initially)
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.Position = UDim2.new(0.25, 0, 0.25, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false  -- Starts as hidden
 mainFrame.Parent = screenGui
 
 -- Adding a title label
@@ -34,7 +35,31 @@ coolButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 coolButton.BorderSizePixel = 0
 coolButton.Parent = mainFrame
 
--- Button hover effect
+-- Adding the Open button
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+openButton.Position = UDim2.new(0.1, 0, 0.7, 0)
+openButton.Text = "Open"
+openButton.Font = Enum.Font.GothamBold
+openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+openButton.TextSize = 20
+openButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+openButton.BorderSizePixel = 0
+openButton.Parent = screenGui
+
+-- Adding the Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+closeButton.Position = UDim2.new(0.7, 0, 0.7, 0)
+closeButton.Text = "Close"
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 20
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeButton.BorderSizePixel = 0
+closeButton.Parent = screenGui
+
+-- Button hover effect for coolButton
 coolButton.MouseEnter:Connect(function()
     coolButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 end)
@@ -43,7 +68,19 @@ coolButton.MouseLeave:Connect(function()
     coolButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 end)
 
--- Button click effect
+-- Button click effect for coolButton
 coolButton.MouseButton1Click:Connect(function()
     print("Button Pressed!")
+end)
+
+-- Open button click to show the mainFrame
+openButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    openButton.Visible = false -- Hide the open button once the frame is open
+end)
+
+-- Close button click to hide the mainFrame
+closeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    openButton.Visible = true -- Show the open button again when the frame is closed
 end)
