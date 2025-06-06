@@ -9,27 +9,39 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 230)
-frame.Position = UDim2.new(0.5, -125, 0.5, -115)
+frame.Size = UDim2.new(0, 250, 0, 200)
+frame.Position = UDim2.new(0.5, -125, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
 frame.Visible = true
 
--- Title
+-- Title Bar
 local title = Instance.new("TextLabel", frame)
-title.Text = "CoreX Hub V1"
+title.Name = "TitleContainer"
 title.Size = UDim2.new(1, 0, 0, 30)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 20
+title.Text = ""
+title.TextTransparency = 1
+
+-- Animated Title Text
+local animatedText = Instance.new("TextLabel", title)
+animatedText.Name = "AnimatedText"
+animatedText.Text = "CoreX Hub V1"
+animatedText.Size = UDim2.new(0, 200, 1, 0)
+animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
+animatedText.Position = UDim2.new(0.5, 0, 0.5, 0)
+animatedText.BackgroundTransparency = 1
+animatedText.TextColor3 = Color3.new(1, 1, 1)
+animatedText.Font = Enum.Font.SourceSansBold
+animatedText.TextSize = 20
+animatedText.TextStrokeTransparency = 0
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
 slider.Size = UDim2.new(0, 200, 0, 30)
-slider.Position = UDim2.new(0, 25, 0, 40)
+slider.Position = UDim2.new(0, 25, 0, 45)
 slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 slider.TextColor3 = Color3.new(1, 1, 1)
 slider.Font = Enum.Font.SourceSans
@@ -39,7 +51,7 @@ slider.Text = "Speed: 16"
 -- ESP Button
 local espToggle = Instance.new("TextButton", frame)
 espToggle.Size = UDim2.new(0, 200, 0, 30)
-espToggle.Position = UDim2.new(0, 25, 0, 80)
+espToggle.Position = UDim2.new(0, 25, 0, 85)
 espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 espToggle.TextColor3 = Color3.new(1, 1, 1)
 espToggle.Font = Enum.Font.SourceSans
@@ -49,32 +61,32 @@ espToggle.Text = "ESP: OFF"
 -- God Mode Button
 local godToggle = Instance.new("TextButton", frame)
 godToggle.Size = UDim2.new(0, 200, 0, 30)
-godToggle.Position = UDim2.new(0, 25, 0, 120)
+godToggle.Position = UDim2.new(0, 25, 0, 125)
 godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 godToggle.TextColor3 = Color3.new(1, 1, 1)
 godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 
--- Fling Toggle Button
-local flingToggle = Instance.new("TextButton", frame)
-flingToggle.Size = UDim2.new(0, 200, 0, 30)
-flingToggle.Position = UDim2.new(0, 25, 0, 160)
-flingToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-flingToggle.TextColor3 = Color3.new(1, 1, 1)
-flingToggle.Font = Enum.Font.SourceSans
-flingToggle.TextSize = 18
-flingToggle.Text = "Fling: OFF"
-
--- GUI Toggle Button
+-- Toggle GUI Button (RGB with text)
 local toggleButton = Instance.new("TextButton", screenGui)
-toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Size = UDim2.new(0, 120, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
 toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
-toggleButton.Text = "Toggle GUI"
+toggleButton.Text = "Toggle CoreX"
+
+-- RGB animation for Toggle Button
+task.spawn(function()
+	while true do
+		local hue = (tick() % 5) / 5
+		local color = Color3.fromHSV(hue, 1, 1)
+		toggleButton.BackgroundColor3 = color
+		task.wait(0.03)
+	end
+end)
 
 -- Speed logic
 local speeds = {16, 32, 50, 100}
@@ -172,40 +184,17 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Fling logic
-local flingEnabled = false
+-- Ripple + RGB animation for animated title
+task.spawn(function()
+	local t = 0
+	while true do
+		t += 0.05
+		local ripple = math.sin(t * 2) * 4
+		local hue = (tick() % 3) / 3
 
-local function flingPlayer(hit)
-	if not flingEnabled then return end
-	local otherChar = hit:FindFirstAncestorOfClass("Model")
-	if otherChar and otherChar:FindFirstChild("Humanoid") and otherChar ~= character then
-		local root = otherChar:FindFirstChild("HumanoidRootPart")
-		local myRoot = character:FindFirstChild("HumanoidRootPart")
-		if root and myRoot then
-			local direction = (root.Position - myRoot.Position).Unit
-			root.Velocity = direction * 200 + Vector3.new(0, 150, 0)
-		end
+		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
+		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
+
+		task.wait(0.016)
 	end
-end
-
-local function connectFlingToCharacter(char)
-	for _, part in pairs(char:GetChildren()) do
-		if part:IsA("BasePart") then
-			part.Touched:Connect(flingPlayer)
-		end
-	end
-end
-
-connectFlingToCharacter(character)
-
-player.CharacterAdded:Connect(function(newChar)
-	character = newChar
-	humanoid = character:WaitForChild("Humanoid")
-	task.wait(1)
-	connectFlingToCharacter(character)
-end)
-
-flingToggle.MouseButton1Click:Connect(function()
-	flingEnabled = not flingEnabled
-	flingToggle.Text = "Fling: " .. (flingEnabled and "ON" or "OFF")
 end)
