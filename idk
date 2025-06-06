@@ -1,4 +1,3 @@
--- LocalScript for Speed + ESP + God Mode GUI
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -17,7 +16,7 @@ frame.Active = true
 frame.Draggable = true
 frame.Visible = true
 
--- Title Container (static background)
+-- Title Bar Container
 local title = Instance.new("TextLabel", frame)
 title.Name = "TitleContainer"
 title.Size = UDim2.new(1, 0, 0, 30)
@@ -30,30 +29,14 @@ title.TextTransparency = 1
 local animatedText = Instance.new("TextLabel", title)
 animatedText.Name = "AnimatedText"
 animatedText.Text = "CoreX Hub V1"
-animatedText.Size = UDim2.new(1, 0, 1, 0)
-animatedText.Position = UDim2.new(0, 0, 0, 0)
+animatedText.Size = UDim2.new(0, 200, 1, 0)
+animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
+animatedText.Position = UDim2.new(0.5, 0, 0.5, 0)
 animatedText.BackgroundTransparency = 1
 animatedText.TextColor3 = Color3.new(1, 1, 1)
 animatedText.Font = Enum.Font.SourceSansBold
 animatedText.TextSize = 20
 animatedText.TextStrokeTransparency = 0
-
--- 🌊 Smooth Ripple RGB Animation for Title Text
-task.spawn(function()
-	local t = 0
-	while true do
-		t += 0.05
-		local ripple = math.sin(t * 2) * 3 -- ripple amplitude
-		local hue = (tick() % 3) / 3       -- color cycling
-
-		animatedText.Position = UDim2.new(0.5, -60 + ripple, 0.5, -15)
-		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
-
-		task.wait(0.016)
-	end
-end)
-
-
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
@@ -83,7 +66,7 @@ godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 godToggle.TextColor3 = Color3.new(1, 1, 1)
 godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
-godToggle.Text = "God Mode glitchy: OFF"
+godToggle.Text = "God Mode: OFF"
 
 -- GUI Toggle Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -189,4 +172,19 @@ end)
 godToggle.MouseButton1Click:Connect(function()
 	godMode = not godMode
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
+end)
+
+-- 🌈 Ripple RGB animation for animated title
+task.spawn(function()
+	local t = 0
+	while true do
+		t += 0.05
+		local ripple = math.sin(t * 2) * 4
+		local hue = (tick() % 3) / 3
+
+		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
+		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
+
+		task.wait(0.016)
+	end
 end)
