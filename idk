@@ -1,119 +1,63 @@
+-- GUI Setup
 local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
 
--- Create GUI
+-- Create ScreenGui
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "ModMenuGUI"
+screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
--- Toggle GUI Button
-local toggleButton = Instance.new("TextButton", screenGui)
-toggleButton.Size = UDim2.new(0, 100, 0, 40)
-toggleButton.Position = UDim2.new(0, 20, 0, 20)
-toggleButton.Text = "Open Menu"
-toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-
--- Main GUI Frame
-local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Size = UDim2.new(0, 250, 0, 350)
-mainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
-mainFrame.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-mainFrame.Visible = false
-mainFrame.Active = true
-mainFrame.Draggable = true
+-- Main Frame
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 250, 0, 120)
+frame.Position = UDim2.new(0.5, -125, 0.5, -60)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Active = true
+frame.Draggable = true
+frame.Visible = true
 
 -- Title
-local title = Instance.new("TextLabel", mainFrame)
-title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "Mod Menu"
-title.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-title.TextColor3 = Color3.new(0, 0, 0)
+local title = Instance.new("TextLabel", frame)
+title.Text = "Speed Control"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
 
--- Helper function to make buttons
-local function createButton(text, yPos)
-	local button = Instance.new("TextButton", mainFrame)
-	button.Size = UDim2.new(0.8, 0, 0, 40)
-	button.Position = UDim2.new(0.1, 0, yPos, 0)
-	button.Text = text
-	button.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-	button.TextColor3 = Color3.new(1, 1, 1)
-	return button
-end
+-- Speed Slider
+local slider = Instance.new("TextButton", frame)
+slider.Size = UDim2.new(0, 200, 0, 30)
+slider.Position = UDim2.new(0, 25, 0, 45)
+slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+slider.TextColor3 = Color3.new(1, 1, 1)
+slider.Font = Enum.Font.SourceSans
+slider.TextSize = 18
+slider.Text = "Speed: 16"
 
--- Buttons
-local speedButton = createButton("Change Speed", 0.2)
-local espButton = createButton("Toggle ESP", 0.35)
-local flyButton = createButton("Toggle Fly", 0.5)
-local noclipButton = createButton("Toggle Noclip", 0.65)
+-- Toggle Button
+local toggleButton = Instance.new("TextButton", screenGui)
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 18
+toggleButton.Text = "Toggle GUI"
 
--- Toggle GUI
-local open = false
+-- Functions
+local speeds = {16, 32, 50, 100}
+local index = 1
+
+slider.MouseButton1Click:Connect(function()
+	index += 1
+	if index > #speeds then index = 1 end
+	local speed = speeds[index]
+	slider.Text = "Speed: " .. speed
+	humanoid.WalkSpeed = speed
+end)
+
 toggleButton.MouseButton1Click:Connect(function()
-	open = not open
-	mainFrame.Visible = open
-	toggleButton.Text = open and "Close Menu" or "Open Menu"
+	frame.Visible = not frame.Visible
 end)
-
--- Speed Toggle
-speedButton.MouseButton1Click:Connect(function()
-	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
-	if humanoid then
-		humanoid.WalkSpeed = humanoid.WalkSpeed == 16 and 50 or 16
-	end
-end)
-
--- ESP Placeholder
-espButton.MouseButton1Click:Connect(function()
-	warn("ESP toggle clicked. Add your ESP logic here.")
-end)
-
--- Fly Mode
-local flying = false
-local flyVelocity
-
-flyButton.MouseButton1Click:Connect(function()
-	flying = not flying
-	if flying then
-		flyVelocity = Instance.new("BodyVelocity")
-		flyVelocity.Velocity = Vector3.new(0, 0, 0)
-		flyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
-		flyVelocity.Parent = humanoidRootPart
-
-		game:GetService("RunService").RenderStepped:Connect(function()
-			if flying and flyVelocity and player.Character then
-				local direction = Vector3.new()
-				if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + workspace.CurrentCamera.CFrame.LookVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - workspace.CurrentCamera.CFrame.LookVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - workspace.CurrentCamera.CFrame.RightVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + workspace.CurrentCamera.CFrame.RightVector end
-				flyVelocity.Velocity = direction.Unit * 50
-			end
-		end)
-	else
-		if flyVelocity then
-			flyVelocity:Destroy()
-		end
-	end
-end)
-
--- Noclip Mode
-local noclip = false
-
-noclipButton.MouseButton1Click:Connect(function()
-	noclip = not noclip
-	game:GetService("RunService").Stepped:Connect(function()
-		if noclip and player.Character then
-			for _, part in pairs(player.Character:GetDescendants()) do
-				if part:IsA("BasePart") and part.CanCollide == true then
-					part.CanCollide = false
-				end
-			end
-		end
-	end)
-end)
-
--- Needed services
-local UserInputService = game:GetService("UserInputService")
