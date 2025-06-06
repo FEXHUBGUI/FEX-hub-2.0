@@ -9,7 +9,7 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 200)
+frame.Size = UDim2.new(0, 250, 0, 240)
 frame.Position = UDim2.new(0.5, -125, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
@@ -20,7 +20,7 @@ frame.Visible = true
 local background = Instance.new("ImageLabel", frame)
 background.Size = UDim2.new(1, 0, 1, 0)
 background.Position = UDim2.new(0, 0, 0, 0)
-background.Image = "rbxassetid://113208146688561)."
+background.Image = "rbxassetid://113208146688561)"
 background.BackgroundTransparency = 1
 background.ImageTransparency = 0.3
 background.ZIndex = 0
@@ -81,6 +81,17 @@ godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 godToggle.ZIndex = 2
+
+-- Fly Button
+local flyToggle = Instance.new("TextButton", frame)
+flyToggle.Size = UDim2.new(0, 200, 0, 30)
+flyToggle.Position = UDim2.new(0, 25, 0, 165)
+flyToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+flyToggle.TextColor3 = Color3.new(1, 1, 1)
+flyToggle.Font = Enum.Font.SourceSans
+flyToggle.TextSize = 18
+flyToggle.Text = "Fly: OFF"
+flyToggle.ZIndex = 2
 
 -- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -196,6 +207,65 @@ end)
 godToggle.MouseButton1Click:Connect(function()
 	godMode = not godMode
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
+end)
+
+-- Fly logic
+local flying = false
+local uis = game:GetService("UserInputService")
+local flySpeed = 50
+local bv, bg
+
+local function startFlying()
+	local root = character:WaitForChild("HumanoidRootPart")
+	bv = Instance.new("BodyVelocity")
+	bv.Velocity = Vector3.new(0, 0, 0)
+	bv.MaxForce = Vector3.new(1, 1, 1) * 100000
+	bv.Parent = root
+
+	bg = Instance.new("BodyGyro")
+	bg.CFrame = root.CFrame
+	bg.MaxTorque = Vector3.new(1, 1, 1) * 100000
+	bg.P = 10000
+	bg.Parent = root
+
+	local moveDir = Vector3.zero
+
+	local function updateDirection()
+		moveDir = Vector3.new(
+			(uis:IsKeyDown(Enum.KeyCode.D) and 1 or 0) - (uis:IsKeyDown(Enum.KeyCode.A) and 1 or 0),
+			0,
+			(uis:IsKeyDown(Enum.KeyCode.S) and 1 or 0) - (uis:IsKeyDown(Enum.KeyCode.W) and 1 or 0)
+		).Unit
+	end
+
+	local moveConn = uis.InputBegan:Connect(updateDirection)
+	local stopConn = uis.InputEnded:Connect(updateDirection)
+
+	task.spawn(function()
+		while flying do
+			if root then
+				updateDirection()
+				bv.Velocity = (workspace.CurrentCamera.CFrame:VectorToWorldSpace(moveDir)) * flySpeed
+				bg.CFrame = workspace.CurrentCamera.CFrame
+			end
+			task.wait()
+		end
+	end)
+end
+
+local function stopFlying()
+	if bv then bv:Destroy() bv = nil end
+	if bg then bg:Destroy() bg = nil end
+end
+
+flyToggle.MouseButton1Click:Connect(function()
+	flying = not flying
+	flyToggle.Text = "Fly: " .. (flying and "ON" or "OFF")
+	if flying then
+		startFlying()
+	else
+		stopFlying()
+	end
 end)
 
 -- Animated title effect
