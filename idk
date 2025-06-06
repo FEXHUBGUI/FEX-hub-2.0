@@ -10,7 +10,7 @@ screenGui.ResetOnSpawn = false
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 250, 0, 240)
-frame.Position = UDim2.new(0.5, -125, 0.5, -120)
+frame.Position = UDim2.new(0.5, -125, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -82,16 +82,16 @@ godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 godToggle.ZIndex = 2
 
--- Fly Button
-local flyToggle = Instance.new("TextButton", frame)
-flyToggle.Size = UDim2.new(0, 200, 0, 30)
-flyToggle.Position = UDim2.new(0, 25, 0, 165)
-flyToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-flyToggle.TextColor3 = Color3.new(1, 1, 1)
-flyToggle.Font = Enum.Font.SourceSans
-flyToggle.TextSize = 18
-flyToggle.Text = "Fly: OFF"
-flyToggle.ZIndex = 2
+-- Float Button
+local floatToggle = Instance.new("TextButton", frame)
+floatToggle.Size = UDim2.new(0, 200, 0, 30)
+floatToggle.Position = UDim2.new(0, 25, 0, 165)
+floatToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+floatToggle.TextColor3 = Color3.new(1, 1, 1)
+floatToggle.Font = Enum.Font.SourceSans
+floatToggle.TextSize = 18
+floatToggle.Text = "Float: OFF"
+floatToggle.ZIndex = 2
 
 -- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -103,11 +103,12 @@ toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle CoreX"
 
--- RGB animation
+-- RGB animation for Toggle Button
 task.spawn(function()
 	while true do
 		local hue = (tick() % 5) / 5
-		toggleButton.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+		local color = Color3.fromHSV(hue, 1, 1)
+		toggleButton.BackgroundColor3 = color
 		task.wait(0.03)
 	end
 end)
@@ -134,8 +135,10 @@ local highlights = {}
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
 	if highlights[targetPlayer] then return end
+
 	local char = targetPlayer.Character
 	if not char then return end
+
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.Adornee = char
@@ -145,6 +148,7 @@ local function createESP(targetPlayer)
 	highlight.OutlineTransparency = 0
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Parent = char
+
 	highlights[targetPlayer] = highlight
 end
 
@@ -205,83 +209,59 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Fly logic
-local flying = false
-local flySpeed = 50
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local keysPressed = {}
-local stopFlyFunc
+-- Float Logic
+local floating = false
+local floatConnection
 
-local function fly()
+floatToggle.MouseButton1Click:Connect(function()
+	floating = not floating
+	floatToggle.Text = "Float: " .. (floating and "ON" or "OFF")
+
 	local rootPart = character:WaitForChild("HumanoidRootPart")
-	local bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.P = 9e4
-	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-	bodyGyro.CFrame = rootPart.CFrame
-	bodyGyro.Parent = rootPart
+	if floating then
+		humanoid.PlatformStand = true
+		local floatGyro = Instance.new("BodyGyro")
+		local floatPosition = Instance.new("BodyPosition")
 
-	local bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.Velocity = Vector3.zero
-	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-	bodyVelocity.Parent = rootPart
+		floatGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+		floatGyro.P = 10000
+		floatGyro.CFrame = rootPart.CFrame
+		floatGyro.Parent = rootPart
 
-	humanoid.PlatformStand = true
+		floatPosition.Position = rootPart.Position
+		floatPosition.MaxForce = Vector3.new(400000, 400000, 400000)
+		floatPosition.P = 2000
+		floatPosition.D = 100
+		floatPosition.Parent = rootPart
 
-	local connection = RunService.RenderStepped:Connect(function()
-		local camCF = workspace.CurrentCamera.CFrame
-		local moveVec = Vector3.zero
+		local t = 0
+		floatConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+			t = t + dt
+			floatPosition.Position = rootPart.Position + Vector3.new(0, math.sin(t * 2) * 0.5 + 1.5, 0)
+			floatGyro.CFrame = workspace.CurrentCamera.CFrame
+		end)
 
-		if keysPressed["W"] then moveVec += camCF.LookVector end
-		if keysPressed["S"] then moveVec -= camCF.LookVector end
-		if keysPressed["A"] then moveVec -= camCF.RightVector end
-		if keysPressed["D"] then moveVec += camCF.RightVector end
-		if keysPressed["Space"] then moveVec += Vector3.new(0, 1, 0) end
-		if keysPressed["LeftShift"] then moveVec -= Vector3.new(0, 1, 0) end
-
-		moveVec = moveVec.Unit * flySpeed
-		if moveVec ~= moveVec then moveVec = Vector3.zero end
-		bodyVelocity.Velocity = moveVec
-		bodyGyro.CFrame = camCF
-	end)
-
-	return function()
-		connection:Disconnect()
-		bodyGyro:Destroy()
-		bodyVelocity:Destroy()
+		floatToggle:SetAttribute("Gyro", floatGyro)
+		floatToggle:SetAttribute("Position", floatPosition)
+	else
 		humanoid.PlatformStand = false
-	end
-end
-
-UserInputService.InputBegan:Connect(function(input, processed)
-	if not processed then
-		keysPressed[input.KeyCode.Name] = true
+		if floatConnection then floatConnection:Disconnect() end
+		if floatToggle:GetAttribute("Gyro") then floatToggle:GetAttribute("Gyro"):Destroy() end
+		if floatToggle:GetAttribute("Position") then floatToggle:GetAttribute("Position"):Destroy() end
 	end
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-	keysPressed[input.KeyCode.Name] = false
-end)
-
-flyToggle.MouseButton1Click:Connect(function()
-	flying = not flying
-	flyToggle.Text = "Fly: " .. (flying and "ON" or "OFF")
-	if flying then
-		stopFlyFunc = fly()
-	elseif stopFlyFunc then
-		stopFlyFunc()
-	end
-end)
-
--- Animated Title effect
+-- Animated title effect
 task.spawn(function()
 	local t = 0
 	while true do
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
+
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
+
 		task.wait(0.016)
 	end
 end)
