@@ -1,43 +1,35 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
 
 -- GUI Setup
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
--- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 240)
-frame.Position = UDim2.new(0.5, -125, 0.5, -120)
+frame.Size = UDim2.new(0, 250, 0, 200)
+frame.Position = UDim2.new(0.5, -125, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
-frame.Visible = true
 
--- Background Image
 local background = Instance.new("ImageLabel", frame)
 background.Size = UDim2.new(1, 0, 1, 0)
-background.Position = UDim2.new(0, 0, 0, 0)
 background.Image = "rbxassetid://113208146688561"
 background.BackgroundTransparency = 1
 background.ImageTransparency = 0.3
 background.ZIndex = 0
 
--- Title Bar
 local title = Instance.new("TextLabel", frame)
-title.Name = "TitleContainer"
 title.Size = UDim2.new(1, 0, 0, 30)
-title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.Text = ""
 title.TextTransparency = 1
 title.ZIndex = 1
 
--- Animated Title Text
 local animatedText = Instance.new("TextLabel", title)
-animatedText.Name = "AnimatedText"
 animatedText.Text = "CoreX Hub V1"
 animatedText.Size = UDim2.new(0, 200, 1, 0)
 animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -49,7 +41,6 @@ animatedText.TextSize = 20
 animatedText.TextStrokeTransparency = 0
 animatedText.ZIndex = 2
 
--- Speed Button
 local slider = Instance.new("TextButton", frame)
 slider.Size = UDim2.new(0, 200, 0, 30)
 slider.Position = UDim2.new(0, 25, 0, 45)
@@ -60,7 +51,6 @@ slider.TextSize = 18
 slider.Text = "Speed: 16"
 slider.ZIndex = 2
 
--- ESP Button
 local espToggle = Instance.new("TextButton", frame)
 espToggle.Size = UDim2.new(0, 200, 0, 30)
 espToggle.Position = UDim2.new(0, 25, 0, 85)
@@ -71,7 +61,6 @@ espToggle.TextSize = 18
 espToggle.Text = "ESP: OFF"
 espToggle.ZIndex = 2
 
--- God Mode Button
 local godToggle = Instance.new("TextButton", frame)
 godToggle.Size = UDim2.new(0, 200, 0, 30)
 godToggle.Position = UDim2.new(0, 25, 0, 125)
@@ -82,18 +71,16 @@ godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 godToggle.ZIndex = 2
 
--- Spider Climb Button
-local spiderToggle = Instance.new("TextButton", frame)
-spiderToggle.Size = UDim2.new(0, 200, 0, 30)
-spiderToggle.Position = UDim2.new(0, 25, 0, 165)
-spiderToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-spiderToggle.TextColor3 = Color3.new(1, 1, 1)
-spiderToggle.Font = Enum.Font.SourceSans
-spiderToggle.TextSize = 18
-spiderToggle.Text = "Spider Climb: OFF"
-spiderToggle.ZIndex = 2
+local climbToggle = Instance.new("TextButton", frame)
+climbToggle.Size = UDim2.new(0, 200, 0, 30)
+climbToggle.Position = UDim2.new(0, 25, 0, 165)
+climbToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+climbToggle.TextColor3 = Color3.new(1, 1, 1)
+climbToggle.Font = Enum.Font.SourceSans
+climbToggle.TextSize = 18
+climbToggle.Text = "Spider Climb: OFF"
+climbToggle.ZIndex = 2
 
--- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 120, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
@@ -103,19 +90,33 @@ toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle CoreX"
 
--- RGB animation for Toggle Button
 task.spawn(function()
 	while true do
 		local hue = (tick() % 5) / 5
-		local color = Color3.fromHSV(hue, 1, 1)
-		toggleButton.BackgroundColor3 = color
+		toggleButton.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.03)
 	end
 end)
 
--- Speed logic
+-- Core Data
 local speeds = {16, 32, 50, 100}
 local index = 1
+local espEnabled = false
+local godMode = false
+local climbing = false
+local highlights = {}
+
+-- Crawl Animation
+local crawlAnim = Instance.new("Animation")
+crawlAnim.AnimationId = "rbxassetid://616006778"
+local crawlTrack = humanoid:LoadAnimation(crawlAnim)
+
+-- Climb Velocity
+local bodyVel = Instance.new("BodyVelocity")
+bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+bodyVel.Velocity = Vector3.new(0, 0, 0)
+
+-- Speed Button
 slider.MouseButton1Click:Connect(function()
 	index += 1
 	if index > #speeds then index = 1 end
@@ -124,21 +125,17 @@ slider.MouseButton1Click:Connect(function()
 	humanoid.WalkSpeed = speed
 end)
 
+-- Toggle Frame
 toggleButton.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
 end)
 
--- ESP logic
-local espEnabled = false
-local highlights = {}
-
+-- ESP
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
 	if highlights[targetPlayer] then return end
-
 	local char = targetPlayer.Character
 	if not char then return end
-
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.Adornee = char
@@ -148,7 +145,6 @@ local function createESP(targetPlayer)
 	highlight.OutlineTransparency = 0
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Parent = char
-
 	highlights[targetPlayer] = highlight
 end
 
@@ -161,26 +157,18 @@ end
 
 local function updateESP()
 	for _, plr in pairs(game.Players:GetPlayers()) do
-		if espEnabled then
-			createESP(plr)
-		else
-			removeESP(plr)
-		end
+		if espEnabled then createESP(plr)
+		else removeESP(plr) end
 	end
 end
 
 game.Players.PlayerAdded:Connect(function(p)
 	p.CharacterAdded:Connect(function()
-		if espEnabled then
-			wait(1)
-			createESP(p)
-		end
+		if espEnabled then wait(1) createESP(p) end
 	end)
 end)
 
-game.Players.PlayerRemoving:Connect(function(p)
-	removeESP(p)
-end)
+game.Players.PlayerRemoving:Connect(removeESP)
 
 espToggle.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
@@ -188,9 +176,7 @@ espToggle.MouseButton1Click:Connect(function()
 	updateESP()
 end)
 
--- God Mode logic
-local godMode = false
-
+-- God Mode
 task.spawn(function()
 	while true do
 		if godMode then
@@ -209,33 +195,35 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Spider Climb logic
-local climbing = false
-local bodyVel = Instance.new("BodyVelocity")
-bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-bodyVel.Velocity = Vector3.new(0, 0, 0)
-
-local crawlAnim = Instance.new("Animation")
-crawlAnim.AnimationId = "rbxassetid://616006778" -- Replace with your own crawling anim if desired
-local crawlTrack = humanoid:LoadAnimation(crawlAnim)
-
-spiderToggle.MouseButton1Click:Connect(function()
+-- Spider Climb
+climbToggle.MouseButton1Click:Connect(function()
 	climbing = not climbing
-	spiderToggle.Text = "Spider Climb: " .. (climbing and "ON" or "OFF")
-
+	climbToggle.Text = "Spider Climb: " .. (climbing and "ON" or "OFF")
 	if climbing then
-		bodyVel.Parent = character:FindFirstChild("HumanoidRootPart")
-		if not crawlTrack.IsPlaying then crawlTrack:Play() end
+		bodyVel.Velocity = Vector3.new(0, 20, 0)
+		bodyVel.Parent = rootPart
+		crawlTrack:Play()
 	else
 		bodyVel.Parent = nil
 		crawlTrack:Stop()
 	end
 end)
 
-game:GetService("RunService").RenderStepped:Connect(function()
-	if climbing and character:FindFirstChild("HumanoidRootPart") then
-		local moveDirection = humanoid.MoveDirection
-		bodyVel.Velocity = Vector3.new(moveDirection.X * 50, moveDirection.Y * 50 + 20, moveDirection.Z * 50)
+-- Respawn handling
+player.CharacterAdded:Connect(function(char)
+	character = char
+	humanoid = character:WaitForChild("Humanoid")
+	rootPart = character:WaitForChild("HumanoidRootPart")
+	bodyVel = Instance.new("BodyVelocity")
+	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+	bodyVel.Velocity = Vector3.new(0, 0, 0)
+	crawlTrack = humanoid:LoadAnimation(crawlAnim)
+
+	humanoid.WalkSpeed = speeds[index]
+	if climbing then
+		bodyVel.Velocity = Vector3.new(0, 20, 0)
+		bodyVel.Parent = rootPart
+		crawlTrack:Play()
 	end
 end)
 
@@ -246,10 +234,8 @@ task.spawn(function()
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
-
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
-
 		task.wait(0.016)
 	end
 end)
