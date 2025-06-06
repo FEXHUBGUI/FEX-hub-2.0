@@ -1,4 +1,4 @@
--- LocalScript for Speed + ESP GUI
+-- LocalScript for Speed + ESP + God Mode GUI
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -10,8 +10,8 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 160)
-frame.Position = UDim2.new(0.5, -125, 0.5, -80)
+frame.Size = UDim2.new(0, 250, 0, 200)
+frame.Position = UDim2.new(0.5, -125, 0.5, -100)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -19,7 +19,7 @@ frame.Visible = true
 
 -- Title
 local title = Instance.new("TextLabel", frame)
-title.Text = "Speed & ESP Menu"
+title.Text = "Player Tools Menu"
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.TextColor3 = Color3.new(1, 1, 1)
@@ -45,6 +45,16 @@ espToggle.TextColor3 = Color3.new(1, 1, 1)
 espToggle.Font = Enum.Font.SourceSans
 espToggle.TextSize = 18
 espToggle.Text = "ESP: OFF"
+
+-- God Mode Button
+local godToggle = Instance.new("TextButton", frame)
+godToggle.Size = UDim2.new(0, 200, 0, 30)
+godToggle.Position = UDim2.new(0, 25, 0, 125)
+godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+godToggle.TextColor3 = Color3.new(1, 1, 1)
+godToggle.Font = Enum.Font.SourceSans
+godToggle.TextSize = 18
+godToggle.Text = "God Mode: OFF"
 
 -- GUI Toggle Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -129,4 +139,25 @@ espToggle.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
 	espToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
 	updateESP()
+end)
+
+-- God Mode logic
+local godMode = false
+
+task.spawn(function()
+	while true do
+		if godMode then
+			pcall(function()
+				if humanoid and humanoid.Health < humanoid.MaxHealth then
+					humanoid.Health = humanoid.MaxHealth
+				end
+			end)
+		end
+		task.wait(0.1)
+	end
+end)
+
+godToggle.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
