@@ -20,7 +20,7 @@ frame.Visible = true
 local background = Instance.new("ImageLabel", frame)
 background.Size = UDim2.new(1, 0, 1, 0)
 background.Position = UDim2.new(0, 0, 0, 0)
-background.Image = "rbxassetid://113208146688561"
+background.Image = "rbxassetid://11320814668"
 background.BackgroundTransparency = 1
 background.ImageTransparency = 0.3
 background.ZIndex = 0
@@ -82,7 +82,7 @@ godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 godToggle.ZIndex = 2
 
--- Float Button
+-- Float Toggle Button
 local floatToggle = Instance.new("TextButton", frame)
 floatToggle.Size = UDim2.new(0, 200, 0, 30)
 floatToggle.Position = UDim2.new(0, 25, 0, 165)
@@ -107,12 +107,12 @@ toggleButton.Text = "Toggle CoreX"
 task.spawn(function()
 	while true do
 		local hue = (tick() % 5) / 5
-		local color = Color3.fromHSV(hue, 1, 1)
-		toggleButton.BackgroundColor3 = color
+		toggleButton.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.03)
 	end
 end)
 
+-- Toggle menu
 toggleButton.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
 end)
@@ -131,9 +131,9 @@ end)
 -- ESP logic
 local espEnabled = false
 local highlights = {}
+
 local function createESP(targetPlayer)
-	if targetPlayer == player then return end
-	if highlights[targetPlayer] then return end
+	if targetPlayer == player or highlights[targetPlayer] then return end
 	local char = targetPlayer.Character
 	if not char then return end
 	local highlight = Instance.new("Highlight")
@@ -167,16 +167,11 @@ end
 
 game.Players.PlayerAdded:Connect(function(p)
 	p.CharacterAdded:Connect(function()
-		if espEnabled then
-			wait(1)
-			createESP(p)
-		end
+		if espEnabled then wait(1) createESP(p) end
 	end)
 end)
 
-game.Players.PlayerRemoving:Connect(function(p)
-	removeESP(p)
-end)
+game.Players.PlayerRemoving:Connect(removeESP)
 
 espToggle.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
@@ -188,12 +183,8 @@ end)
 local godMode = false
 task.spawn(function()
 	while true do
-		if godMode then
-			pcall(function()
-				if humanoid and humanoid.Health < humanoid.MaxHealth then
-					humanoid.Health = humanoid.MaxHealth
-				end
-			end)
+		if godMode and humanoid and humanoid.Health < humanoid.MaxHealth then
+			humanoid.Health = humanoid.MaxHealth
 		end
 		task.wait(0.1)
 	end
@@ -204,67 +195,71 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- === Float logic with virtual joystick ===
+-- Float + Joystick logic
+local RunService = game:GetService("RunService")
 local flying = false
-local floatSpeed = 50
 local bodyGyro, bodyVel
-
--- Joystick UI
-local joystickBase = Instance.new("ImageLabel", screenGui)
-joystickBase.Size = UDim2.new(0, 120, 0, 120)
-joystickBase.Position = UDim2.new(0, 30, 1, -150)
-joystickBase.Image = "rbxassetid://11483214659"
-joystickBase.BackgroundTransparency = 1
-joystickBase.Visible = false
-joystickBase.ZIndex = 10
-
-local joystickStick = Instance.new("ImageButton", joystickBase)
-joystickStick.Size = UDim2.new(0, 60, 0, 60)
-joystickStick.Position = UDim2.new(0.5, -30, 0.5, -30)
-joystickStick.Image = "rbxassetid://11483214659"
-joystickStick.BackgroundTransparency = 1
-joystickStick.AutoButtonColor = false
-joystickStick.ZIndex = 11
-
--- Fly physics
 local moveVector = Vector3.zero
-local dragging = false
+local floatSpeed = 50
 
-joystickStick.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
+-- Joystick
+local joystickGui = Instance.new("Frame", screenGui)
+joystickGui.Size = UDim2.new(0, 150, 0, 150)
+joystickGui.Position = UDim2.new(0, 30, 1, -160)
+joystickGui.BackgroundTransparency = 1
+joystickGui.Visible = false
+joystickGui.ZIndex = 10
+
+local base = Instance.new("ImageLabel", joystickGui)
+base.Size = UDim2.new(0, 150, 0, 150)
+base.Image = "rbxassetid://11483214659"
+base.BackgroundTransparency = 1
+
+local stick = Instance.new("ImageButton", base)
+stick.Size = UDim2.new(0, 60, 0, 60)
+stick.Position = UDim2.new(0.5, -30, 0.5, -30)
+stick.Image = "rbxassetid://11483214659"
+stick.BackgroundTransparency = 1
+stick.AutoButtonColor = false
+
+local dragging = false
+local function updateMovement(input)
+	local center = base.AbsolutePosition + base.AbsoluteSize / 2
+	local delta = Vector2.new(input.Position.X, input.Position.Y) - center
+	local radius = 60
+	local clamped = delta.Unit * math.min(delta.Magnitude, radius)
+	stick.Position = UDim2.new(0.5, clamped.X - 30, 0.5, clamped.Y - 30)
+	moveVector = Vector3.new(clamped.X / radius, clamped.Y / radius, 0)
+end
+
+stick.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch then dragging = true end
+end)
+
+stick.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.Touch then
+		updateMovement(input)
 	end
 end)
 
-joystickStick.InputEnded:Connect(function(input)
+stick.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.Touch then
 		dragging = false
+		stick.Position = UDim2.new(0.5, -30, 0.5, -30)
 		moveVector = Vector3.zero
-		joystickStick.Position = UDim2.new(0.5, -30, 0.5, -30)
 	end
 end)
 
-joystickStick.InputChanged:Connect(function(input)
-	if dragging and input.Position then
-		local delta = Vector2.new(input.Position.X, input.Position.Y) - joystickBase.AbsolutePosition
-		local radius = 50
-		local clamped = delta.Unit * math.min(delta.Magnitude, radius)
-		moveVector = Vector3.new(clamped.X, 0, clamped.Y).Unit
-
-		joystickStick.Position = UDim2.new(0.5, clamped.X - 30, 0.5, clamped.Y - 30)
-	end
-end)
-
--- Toggle Float On/Off
 floatToggle.MouseButton1Click:Connect(function()
 	flying = not flying
 	floatToggle.Text = "Float: " .. (flying and "ON" or "OFF")
-	joystickBase.Visible = flying
+	joystickGui.Visible = flying
 
 	if flying then
 		bodyGyro = Instance.new("BodyGyro", character.PrimaryPart)
 		bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
 		bodyGyro.P = 100000
+		bodyGyro.CFrame = workspace.CurrentCamera.CFrame
 
 		bodyVel = Instance.new("BodyVelocity", character.PrimaryPart)
 		bodyVel.MaxForce = Vector3.new(400000, 400000, 400000)
@@ -275,16 +270,19 @@ floatToggle.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Movement handler
-game:GetService("RunService").RenderStepped:Connect(function()
-	if flying and character and character.PrimaryPart then
+RunService.RenderStepped:Connect(function()
+	if flying and bodyGyro and bodyVel and character and character.PrimaryPart then
 		local cam = workspace.CurrentCamera
 		bodyGyro.CFrame = cam.CFrame
-		bodyVel.Velocity = cam.CFrame:VectorToWorldSpace(moveVector) * floatSpeed
+		local forward = cam.CFrame.LookVector
+		local right = cam.CFrame.RightVector
+		local up = Vector3.new(0, 1, 0)
+		local moveDir = (right * moveVector.X + up * moveVector.Y).Unit
+		bodyVel.Velocity = moveDir * floatSpeed
 	end
 end)
 
--- Animated Title
+-- Animated title effect
 task.spawn(function()
 	local t = 0
 	while true do
