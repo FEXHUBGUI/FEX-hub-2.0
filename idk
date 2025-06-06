@@ -38,21 +38,22 @@ animatedText.Font = Enum.Font.SourceSansBold
 animatedText.TextSize = 20
 animatedText.TextStrokeTransparency = 0
 
--- 🎨 Fast RGB Squiggle Text Animation
+-- 🌊 Smooth Ripple RGB Animation for Title Text
 task.spawn(function()
 	local t = 0
 	while true do
-		t += 0.1
-		local x = math.sin(t * 4) * 2.5
-		local y = math.cos(t * 5) * 1.5
-		local hue = (tick() % 3) / 3
+		t += 0.05
+		local ripple = math.sin(t * 2) * 3 -- ripple amplitude
+		local hue = (tick() % 3) / 3       -- color cycling
 
-		animatedText.Position = UDim2.new(0, x, 0, y)
+		animatedText.Position = UDim2.new(0.5, -60 + ripple, 0.5, -15)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 
-		task.wait(0.016) -- 60 FPS
+		task.wait(0.016)
 	end
 end)
+
+
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
