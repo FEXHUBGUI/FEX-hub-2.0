@@ -9,8 +9,8 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 200)
-frame.Position = UDim2.new(0.5, -125, 0.5, -100)
+frame.Size = UDim2.new(0, 250, 0, 240)
+frame.Position = UDim2.new(0.5, -125, 0.5, -120)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -81,6 +81,17 @@ godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 godToggle.ZIndex = 2
+
+-- Spider Climb Button
+local spiderToggle = Instance.new("TextButton", frame)
+spiderToggle.Size = UDim2.new(0, 200, 0, 30)
+spiderToggle.Position = UDim2.new(0, 25, 0, 165)
+spiderToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+spiderToggle.TextColor3 = Color3.new(1, 1, 1)
+spiderToggle.Font = Enum.Font.SourceSans
+spiderToggle.TextSize = 18
+spiderToggle.Text = "Spider Climb: OFF"
+spiderToggle.ZIndex = 2
 
 -- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -196,6 +207,45 @@ end)
 godToggle.MouseButton1Click:Connect(function()
 	godMode = not godMode
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
+end)
+
+-- Spider Climb Logic
+local climbing = false
+local bodyVel = Instance.new("BodyVelocity")
+bodyVel.MaxForce = Vector3.new(10000, 10000, 10000)
+bodyVel.Velocity = Vector3.new(0, 0, 0)
+
+local function isTouchingWall()
+	local rayOrigin = character.HumanoidRootPart.Position
+	local rayDirection = character.HumanoidRootPart.CFrame.LookVector * 2
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {character}
+	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+	local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+	return result ~= nil
+end
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if climbing and isTouchingWall() then
+		local moveDir = humanoid.MoveDirection
+		if moveDir.Magnitude > 0 then
+			bodyVel.Velocity = Vector3.new(moveDir.X, 5, moveDir.Z)
+		else
+			bodyVel.Velocity = Vector3.zero
+		end
+		bodyVel.Parent = character.HumanoidRootPart
+	else
+		bodyVel.Parent = nil
+	end
+end)
+
+spiderToggle.MouseButton1Click:Connect(function()
+	climbing = not climbing
+	spiderToggle.Text = "Spider Climb: " .. (climbing and "ON" or "OFF")
+	if not climbing then
+		bodyVel.Parent = nil
+	end
 end)
 
 -- Animated title effect
