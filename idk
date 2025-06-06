@@ -1,3 +1,4 @@
+-- Start of your existing script
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -10,8 +11,8 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 300)
-frame.Position = UDim2.new(0.5, -125, 0.5, -150)
+frame.Size = UDim2.new(0, 250, 0, 320)
+frame.Position = UDim2.new(0.5, -125, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -45,37 +46,108 @@ animatedText.Font = Enum.Font.SourceSansBold
 animatedText.TextSize = 20
 animatedText.ZIndex = 2
 
--- Buttons
-local function makeButton(text, y)
-	local btn = Instance.new("TextButton", frame)
-	btn.Size = UDim2.new(0, 200, 0, 30)
-	btn.Position = UDim2.new(0, 25, 0, y)
-	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.Font = Enum.Font.SourceSans
-	btn.TextSize = 18
-	btn.Text = text
-	btn.ZIndex = 2
-	return btn
-end
+-- Speed Button
+local slider = Instance.new("TextButton", frame)
+slider.Size = UDim2.new(0, 200, 0, 30)
+slider.Position = UDim2.new(0, 25, 0, 45)
+slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+slider.TextColor3 = Color3.new(1, 1, 1)
+slider.Font = Enum.Font.SourceSans
+slider.TextSize = 18
+slider.Text = "Speed: 16"
+slider.ZIndex = 2
 
-local slider = makeButton("Speed: 16", 45)
-local espToggle = makeButton("ESP: OFF", 85)
-local godToggle = makeButton("God Mode: OFF", 125)
-local heliToggle = makeButton("Helicopter: OFF", 165)
-local musicToggle = makeButton("Music: OFF", 205)
-local playMusicToggle = makeButton("Play Music", 245)
-playMusicToggle.Visible = false
+-- ESP Button
+local espToggle = Instance.new("TextButton", frame)
+espToggle.Size = UDim2.new(0, 200, 0, 30)
+espToggle.Position = UDim2.new(0, 25, 0, 85)
+espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+espToggle.TextColor3 = Color3.new(1, 1, 1)
+espToggle.Font = Enum.Font.SourceSans
+espToggle.TextSize = 18
+espToggle.Text = "ESP: OFF"
+espToggle.ZIndex = 2
+
+-- God Mode Button
+local godToggle = Instance.new("TextButton", frame)
+godToggle.Size = UDim2.new(0, 200, 0, 30)
+godToggle.Position = UDim2.new(0, 25, 0, 125)
+godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+godToggle.TextColor3 = Color3.new(1, 1, 1)
+godToggle.Font = Enum.Font.SourceSans
+godToggle.TextSize = 18
+godToggle.Text = "God Mode: OFF"
+godToggle.ZIndex = 2
+
+-- Helicopter Button
+local heliToggle = Instance.new("TextButton", frame)
+heliToggle.Size = UDim2.new(0, 200, 0, 30)
+heliToggle.Position = UDim2.new(0, 25, 0, 165)
+heliToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+heliToggle.TextColor3 = Color3.new(1, 1, 1)
+heliToggle.Font = Enum.Font.SourceSans
+heliToggle.TextSize = 18
+heliToggle.Text = "Helicopter: OFF"
+heliToggle.ZIndex = 2
+
+-- MUSIC SYSTEM (NEW)
+local musicSound = Instance.new("Sound", workspace)
+musicSound.Looped = true
+musicSound.Volume = 1
+local musicEnabled = false
 
 local musicInput = Instance.new("TextBox", frame)
 musicInput.Size = UDim2.new(0, 200, 0, 30)
-musicInput.Position = UDim2.new(0, 25, 0, 245)
+musicInput.Position = UDim2.new(0, 25, 0, 205)
 musicInput.PlaceholderText = "Enter Sound ID"
-musicInput.Visible = false
 musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 musicInput.TextColor3 = Color3.new(1, 1, 1)
 musicInput.Font = Enum.Font.SourceSans
 musicInput.TextSize = 18
+musicInput.Text = ""
+musicInput.Visible = false
+musicInput.ZIndex = 2
+
+local playMusicButton = Instance.new("TextButton", frame)
+playMusicButton.Size = UDim2.new(0, 200, 0, 30)
+playMusicButton.Position = UDim2.new(0, 25, 0, 245)
+playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+playMusicButton.TextColor3 = Color3.new(1, 1, 1)
+playMusicButton.Font = Enum.Font.SourceSans
+playMusicButton.TextSize = 18
+playMusicButton.Text = "Play Music"
+playMusicButton.Visible = false
+playMusicButton.ZIndex = 2
+
+local musicToggle = Instance.new("TextButton", frame)
+musicToggle.Size = UDim2.new(0, 200, 0, 30)
+musicToggle.Position = UDim2.new(0, 25, 0, 285)
+musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+musicToggle.TextColor3 = Color3.new(1, 1, 1)
+musicToggle.Font = Enum.Font.SourceSans
+musicToggle.TextSize = 18
+musicToggle.Text = "Music: OFF"
+musicToggle.ZIndex = 2
+
+musicToggle.MouseButton1Click:Connect(function()
+	musicEnabled = not musicEnabled
+	musicToggle.Text = "Music: " .. (musicEnabled and "ON" or "OFF")
+	musicInput.Visible = musicEnabled
+	playMusicButton.Visible = musicEnabled
+	if not musicEnabled then
+		musicSound:Stop()
+	end
+end)
+
+playMusicButton.MouseButton1Click:Connect(function()
+	local id = musicInput.Text:match("%d+")
+	if id then
+		musicSound.SoundId = "rbxassetid://" .. id
+		musicSound:Play()
+	else
+		warn("Invalid Sound ID")
+	end
+end)
 
 -- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -190,15 +262,11 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Helicopter logic with spin
+-- Helicopter logic
 local helicopterEnabled = false
 local bodyVel = Instance.new("BodyVelocity")
-local bodyGyro = Instance.new("BodyGyro")
 bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 bodyVel.Velocity = Vector3.new(0, 0, 0)
-
-bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-bodyGyro.CFrame = CFrame.new()
 
 local crawlAnim = Instance.new("Animation")
 crawlAnim.AnimationId = "rbxassetid://616006778"
@@ -210,57 +278,13 @@ heliToggle.MouseButton1Click:Connect(function()
 	if helicopterEnabled then
 		bodyVel.Parent = rootPart
 		bodyVel.Velocity = Vector3.new(0, 50, 0)
-		bodyGyro.Parent = rootPart
 		crawlTrack:Play()
 	else
 		bodyVel.Parent = nil
-		bodyGyro.Parent = nil
 		crawlTrack:Stop()
 	end
 end)
 
--- Helicopter spin logic
-task.spawn(function()
-	while true do
-		if helicopterEnabled and bodyGyro then
-			bodyGyro.CFrame = bodyGyro.CFrame * CFrame.Angles(0, math.rad(15), 0)
-		end
-		task.wait(0.05)
-	end
-end)
-
--- Music logic
-local musicEnabled = false
-local sound = Instance.new("Sound", workspace.CurrentCamera)
-sound.Volume = 1
-sound.Looped = true
-sound.Name = "CoreXMusic"
-
-musicToggle.MouseButton1Click:Connect(function()
-	musicEnabled = not musicEnabled
-	musicToggle.Text = "Music: " .. (musicEnabled and "ON" or "OFF")
-	musicInput.Visible = musicEnabled
-	playMusicToggle.Visible = musicEnabled
-	if not musicEnabled then
-		sound:Stop()
-	end
-end)
-
-playMusicToggle.MouseButton1Click:Connect(function()
-	if sound.IsPlaying then
-		sound:Stop()
-		playMusicToggle.Text = "Play Music"
-	else
-		local id = musicInput.Text:match("%d+")
-		if id then
-			sound.SoundId = "rbxassetid://" .. id
-			sound:Play()
-			playMusicToggle.Text = "Stop Music"
-		end
-	end
-end)
-
--- Handle respawn
 player.CharacterAdded:Connect(function(char)
 	character = char
 	humanoid = char:WaitForChild("Humanoid")
@@ -270,28 +294,23 @@ player.CharacterAdded:Connect(function(char)
 	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 	bodyVel.Velocity = Vector3.new(0, 0, 0)
 
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-	bodyGyro.CFrame = CFrame.new()
-
 	crawlTrack = humanoid:LoadAnimation(crawlAnim)
 	humanoid.WalkSpeed = speeds[index]
 
 	if helicopterEnabled then
 		bodyVel.Parent = rootPart
 		bodyVel.Velocity = Vector3.new(0, 50, 0)
-		bodyGyro.Parent = rootPart
 		crawlTrack:Play()
 	end
 end)
 
--- Animated title effect
 task.spawn(function()
 	local t = 0
 	while true do
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
+
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.016)
