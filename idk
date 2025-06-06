@@ -26,6 +26,7 @@ title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 20
+title.TextStrokeTransparency = 1
 
 -- 🌈 RGB Title Animation
 task.spawn(function()
@@ -37,20 +38,17 @@ task.spawn(function()
 	end
 end)
 
--- 🌀 Wavy Text Animation (only moves text, not label box)
+-- 🌀 Text-Only Squiggle Animation
 task.spawn(function()
 	local t = 0
 	while true do
 		t += 0.05
 		local x = math.sin(t * 2) * 2
 		local y = math.cos(t * 3) * 1
-		title.TextStrokeTransparency = 1 -- no shadow
-		title.TextStrokeColor3 = Color3.new(1, 1, 1)
 		title.TextStrokeOffset = Vector2.new(x, y)
 		task.wait(0.03)
 	end
 end)
-
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
