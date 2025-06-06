@@ -37,18 +37,20 @@ task.spawn(function()
 	end
 end)
 
--- 🌀 Wavy Title Animation
+-- 🌀 Wavy Text Animation (only moves text, not label box)
 task.spawn(function()
 	local t = 0
-	local originalPos = title.Position
 	while true do
 		t += 0.05
-		local offsetX = math.sin(t * 2) * 5 -- wiggle left/right 5px
-		local offsetY = math.cos(t) * 2 -- bounce up/down 2px
-		title.Position = originalPos + UDim2.new(0, offsetX, 0, offsetY)
+		local x = math.sin(t * 2) * 2
+		local y = math.cos(t * 3) * 1
+		title.TextStrokeTransparency = 1 -- no shadow
+		title.TextStrokeColor3 = Color3.new(1, 1, 1)
+		title.TextStrokeOffset = Vector2.new(x, y)
 		task.wait(0.03)
 	end
 end)
+
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
