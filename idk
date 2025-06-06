@@ -16,7 +16,7 @@ frame.Active = true
 frame.Draggable = true
 frame.Visible = true
 
--- Title Bar Container
+-- Title Bar
 local title = Instance.new("TextLabel", frame)
 title.Name = "TitleContainer"
 title.Size = UDim2.new(1, 0, 0, 30)
@@ -68,15 +68,25 @@ godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
 
--- GUI Toggle Button
+-- Toggle GUI Button (RGB with text)
 local toggleButton = Instance.new("TextButton", screenGui)
-toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Size = UDim2.new(0, 120, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
 toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
-toggleButton.Text = "Toggle GUI"
+toggleButton.Text = "Toggle CoreX"
+
+-- RGB animation for Toggle Button
+task.spawn(function()
+	while true do
+		local hue = (tick() % 5) / 5
+		local color = Color3.fromHSV(hue, 1, 1)
+		toggleButton.BackgroundColor3 = color
+		task.wait(0.03)
+	end
+end)
 
 -- Speed logic
 local speeds = {16, 32, 50, 100}
@@ -174,7 +184,7 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- 🌈 Ripple RGB animation for animated title
+-- Ripple + RGB animation for animated title
 task.spawn(function()
 	local t = 0
 	while true do
