@@ -159,5 +159,5 @@ end)
 
 godToggle.MouseButton1Click:Connect(function()
 	godMode = not godMode
-	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
+	godToggle.Text = "God Mode: " .. (godMode(buggy) and "ON" or "OFF")
 end)
