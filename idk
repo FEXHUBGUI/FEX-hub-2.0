@@ -10,7 +10,7 @@ screenGui.ResetOnSpawn = false
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 250, 0, 240)
-frame.Position = UDim2.new(0.5, -125, 0.5, -100)
+frame.Position = UDim2.new(0.5, -125, 0.5, -120)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -113,6 +113,11 @@ task.spawn(function()
 	end
 end)
 
+-- Toggle menu
+toggleButton.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+end)
+
 -- Speed logic
 local speeds = {16, 32, 50, 100}
 local index = 1
@@ -122,10 +127,6 @@ slider.MouseButton1Click:Connect(function()
 	local speed = speeds[index]
 	slider.Text = "Speed: " .. speed
 	humanoid.WalkSpeed = speed
-end)
-
-toggleButton.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
 end)
 
 -- ESP logic
@@ -190,7 +191,6 @@ end)
 
 -- God Mode logic
 local godMode = false
-
 task.spawn(function()
 	while true do
 		if godMode then
@@ -209,45 +209,45 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Float Logic
+-- Float logic for mobile/gamepad
 local floating = false
 local floatConnection
-
 floatToggle.MouseButton1Click:Connect(function()
 	floating = not floating
 	floatToggle.Text = "Float: " .. (floating and "ON" or "OFF")
 
 	local rootPart = character:WaitForChild("HumanoidRootPart")
+	local camera = workspace.CurrentCamera
+
 	if floating then
 		humanoid.PlatformStand = true
-		local floatGyro = Instance.new("BodyGyro")
-		local floatPosition = Instance.new("BodyPosition")
 
-		floatGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
-		floatGyro.P = 10000
-		floatGyro.CFrame = rootPart.CFrame
-		floatGyro.Parent = rootPart
+		local bodyGyro = Instance.new("BodyGyro")
+		bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+		bodyGyro.P = 10000
+		bodyGyro.CFrame = rootPart.CFrame
+		bodyGyro.Parent = rootPart
 
-		floatPosition.Position = rootPart.Position
-		floatPosition.MaxForce = Vector3.new(400000, 400000, 400000)
-		floatPosition.P = 2000
-		floatPosition.D = 100
-		floatPosition.Parent = rootPart
+		local bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+		bodyVelocity.Velocity = Vector3.zero
+		bodyVelocity.Parent = rootPart
 
-		local t = 0
-		floatConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-			t = t + dt
-			floatPosition.Position = rootPart.Position + Vector3.new(0, math.sin(t * 2) * 0.5 + 1.5, 0)
-			floatGyro.CFrame = workspace.CurrentCamera.CFrame
+		local RunService = game:GetService("RunService")
+		floatConnection = RunService.Heartbeat:Connect(function()
+			local moveDirection = humanoid.MoveDirection
+			local moveVec = moveDirection * 50
+			bodyVelocity.Velocity = Vector3.new(moveVec.X, 1, moveVec.Z)
+			bodyGyro.CFrame = camera.CFrame
 		end)
 
-		floatToggle:SetAttribute("Gyro", floatGyro)
-		floatToggle:SetAttribute("Position", floatPosition)
+		floatToggle:SetAttribute("Gyro", bodyGyro)
+		floatToggle:SetAttribute("Velocity", bodyVelocity)
 	else
 		humanoid.PlatformStand = false
 		if floatConnection then floatConnection:Disconnect() end
 		if floatToggle:GetAttribute("Gyro") then floatToggle:GetAttribute("Gyro"):Destroy() end
-		if floatToggle:GetAttribute("Position") then floatToggle:GetAttribute("Position"):Destroy() end
+		if floatToggle:GetAttribute("Velocity") then floatToggle:GetAttribute("Velocity"):Destroy() end
 	end
 end)
 
