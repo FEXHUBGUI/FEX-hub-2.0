@@ -209,42 +209,33 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Spider Climb Logic
+-- Spider Climb logic
 local climbing = false
 local bodyVel = Instance.new("BodyVelocity")
-bodyVel.MaxForce = Vector3.new(10000, 10000, 10000)
+bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 bodyVel.Velocity = Vector3.new(0, 0, 0)
 
-local function isTouchingWall()
-	local rayOrigin = character.HumanoidRootPart.Position
-	local rayDirection = character.HumanoidRootPart.CFrame.LookVector * 2
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterDescendantsInstances = {character}
-	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-
-	local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
-	return result ~= nil
-end
-
-game:GetService("RunService").RenderStepped:Connect(function()
-	if climbing and isTouchingWall() then
-		local moveDir = humanoid.MoveDirection
-		if moveDir.Magnitude > 0 then
-			bodyVel.Velocity = Vector3.new(moveDir.X, 5, moveDir.Z)
-		else
-			bodyVel.Velocity = Vector3.zero
-		end
-		bodyVel.Parent = character.HumanoidRootPart
-	else
-		bodyVel.Parent = nil
-	end
-end)
+local crawlAnim = Instance.new("Animation")
+crawlAnim.AnimationId = "rbxassetid://616006778" -- Replace with your own crawling anim if desired
+local crawlTrack = humanoid:LoadAnimation(crawlAnim)
 
 spiderToggle.MouseButton1Click:Connect(function()
 	climbing = not climbing
 	spiderToggle.Text = "Spider Climb: " .. (climbing and "ON" or "OFF")
-	if not climbing then
+
+	if climbing then
+		bodyVel.Parent = character:FindFirstChild("HumanoidRootPart")
+		if not crawlTrack.IsPlaying then crawlTrack:Play() end
+	else
 		bodyVel.Parent = nil
+		crawlTrack:Stop()
+	end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if climbing and character:FindFirstChild("HumanoidRootPart") then
+		local moveDirection = humanoid.MoveDirection
+		bodyVel.Velocity = Vector3.new(moveDirection.X * 50, moveDirection.Y * 50 + 20, moveDirection.Z * 50)
 	end
 end)
 
