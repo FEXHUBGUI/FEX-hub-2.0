@@ -16,6 +16,15 @@ frame.Active = true
 frame.Draggable = true
 frame.Visible = true
 
+-- Background Image
+local background = Instance.new("ImageLabel", frame)
+background.Size = UDim2.new(1, 0, 1, 0)
+background.Position = UDim2.new(0, 0, 0, 0)
+background.Image = "rbxassetid://114410725937699"
+background.BackgroundTransparency = 1
+background.ImageTransparency = 0.3
+background.ZIndex = 0
+
 -- Title Bar
 local title = Instance.new("TextLabel", frame)
 title.Name = "TitleContainer"
@@ -24,6 +33,7 @@ title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.Text = ""
 title.TextTransparency = 1
+title.ZIndex = 1
 
 -- Animated Title Text
 local animatedText = Instance.new("TextLabel", title)
@@ -37,6 +47,7 @@ animatedText.TextColor3 = Color3.new(1, 1, 1)
 animatedText.Font = Enum.Font.SourceSansBold
 animatedText.TextSize = 20
 animatedText.TextStrokeTransparency = 0
+animatedText.ZIndex = 2
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
@@ -47,6 +58,7 @@ slider.TextColor3 = Color3.new(1, 1, 1)
 slider.Font = Enum.Font.SourceSans
 slider.TextSize = 18
 slider.Text = "Speed: 16"
+slider.ZIndex = 2
 
 -- ESP Button
 local espToggle = Instance.new("TextButton", frame)
@@ -57,6 +69,7 @@ espToggle.TextColor3 = Color3.new(1, 1, 1)
 espToggle.Font = Enum.Font.SourceSans
 espToggle.TextSize = 18
 espToggle.Text = "ESP: OFF"
+espToggle.ZIndex = 2
 
 -- God Mode Button
 local godToggle = Instance.new("TextButton", frame)
@@ -67,8 +80,9 @@ godToggle.TextColor3 = Color3.new(1, 1, 1)
 godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
 godToggle.Text = "God Mode: OFF"
+godToggle.ZIndex = 2
 
--- Toggle GUI Button (RGB with text)
+-- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 120, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
@@ -184,7 +198,7 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Ripple + RGB animation for animated title
+-- Animated title effect
 task.spawn(function()
 	local t = 0
 	while true do
