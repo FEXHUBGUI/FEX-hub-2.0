@@ -21,6 +21,7 @@ frame.Visible = true
 local title = Instance.new("TextLabel", frame)
 title.Text = "CoreX Hub V1"
 title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.SourceSansBold
@@ -33,6 +34,19 @@ task.spawn(function()
 		hue = (hue + 0.01) % 1
 		title.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.05)
+	end
+end)
+
+-- 🌀 Wavy Title Animation
+task.spawn(function()
+	local t = 0
+	local originalPos = title.Position
+	while true do
+		t += 0.05
+		local offsetX = math.sin(t * 2) * 5 -- wiggle left/right 5px
+		local offsetY = math.cos(t) * 2 -- bounce up/down 2px
+		title.Position = originalPos + UDim2.new(0, offsetX, 0, offsetY)
+		task.wait(0.03)
 	end
 end)
 
