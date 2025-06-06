@@ -1,17 +1,17 @@
--- GUI Setup
+-- LocalScript for Speed + ESP GUI
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
--- Create ScreenGui
+-- GUI Setup
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 120)
-frame.Position = UDim2.new(0.5, -125, 0.5, -60)
+frame.Size = UDim2.new(0, 250, 0, 160)
+frame.Position = UDim2.new(0.5, -125, 0.5, -80)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -19,14 +19,14 @@ frame.Visible = true
 
 -- Title
 local title = Instance.new("TextLabel", frame)
-title.Text = "Speed Control"
+title.Text = "Speed & ESP Menu"
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 20
 
--- Speed Slider
+-- Speed Button
 local slider = Instance.new("TextButton", frame)
 slider.Size = UDim2.new(0, 200, 0, 30)
 slider.Position = UDim2.new(0, 25, 0, 45)
@@ -36,7 +36,17 @@ slider.Font = Enum.Font.SourceSans
 slider.TextSize = 18
 slider.Text = "Speed: 16"
 
--- Toggle Button
+-- ESP Button
+local espToggle = Instance.new("TextButton", frame)
+espToggle.Size = UDim2.new(0, 200, 0, 30)
+espToggle.Position = UDim2.new(0, 25, 0, 85)
+espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+espToggle.TextColor3 = Color3.new(1, 1, 1)
+espToggle.Font = Enum.Font.SourceSans
+espToggle.TextSize = 18
+espToggle.Text = "ESP: OFF"
+
+-- GUI Toggle Button
 local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 100, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
@@ -46,10 +56,9 @@ toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle GUI"
 
--- Functions
+-- Speed logic
 local speeds = {16, 32, 50, 100}
 local index = 1
-
 slider.MouseButton1Click:Connect(function()
 	index += 1
 	if index > #speeds then index = 1 end
@@ -60,4 +69,64 @@ end)
 
 toggleButton.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
+end)
+
+-- ESP logic
+local espEnabled = false
+local highlights = {}
+
+local function createESP(targetPlayer)
+	if targetPlayer == player then return end
+	if highlights[targetPlayer] then return end
+
+	local char = targetPlayer.Character
+	if not char then return end
+
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "ESPHighlight"
+	highlight.Adornee = char
+	highlight.FillColor = Color3.fromRGB(255, 0, 0)
+	highlight.FillTransparency = 0.5
+	highlight.OutlineColor = Color3.new(1, 1, 1)
+	highlight.OutlineTransparency = 0
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = char
+
+	highlights[targetPlayer] = highlight
+end
+
+local function removeESP(targetPlayer)
+	if highlights[targetPlayer] then
+		highlights[targetPlayer]:Destroy()
+		highlights[targetPlayer] = nil
+	end
+end
+
+local function updateESP()
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		if espEnabled then
+			createESP(plr)
+		else
+			removeESP(plr)
+		end
+	end
+end
+
+game.Players.PlayerAdded:Connect(function(p)
+	p.CharacterAdded:Connect(function()
+		if espEnabled then
+			wait(1)
+			createESP(p)
+		end
+	end)
+end)
+
+game.Players.PlayerRemoving:Connect(function(p)
+	removeESP(p)
+end)
+
+espToggle.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+	updateESP()
 end)
