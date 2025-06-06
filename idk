@@ -1,3 +1,4 @@
+-- Local player setup
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -10,7 +11,7 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 240)
+frame.Size = UDim2.new(0, 250, 0, 360)
 frame.Position = UDim2.new(0.5, -125, 0.5, -120)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
@@ -89,6 +90,67 @@ heliToggle.TextSize = 18
 heliToggle.Text = "Helicopter: OFF"
 heliToggle.ZIndex = 2
 
+-- Sound Input Box
+local soundBox = Instance.new("TextBox", frame)
+soundBox.Size = UDim2.new(0, 200, 0, 30)
+soundBox.Position = UDim2.new(0, 25, 0, 205)
+soundBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+soundBox.PlaceholderText = "Enter Sound ID"
+soundBox.TextColor3 = Color3.new(1, 1, 1)
+soundBox.Font = Enum.Font.SourceSans
+soundBox.TextSize = 18
+soundBox.ClearTextOnFocus = false
+
+-- Play Music Button
+local playMusicBtn = Instance.new("TextButton", frame)
+playMusicBtn.Size = UDim2.new(0, 200, 0, 30)
+playMusicBtn.Position = UDim2.new(0, 25, 0, 245)
+playMusicBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+playMusicBtn.TextColor3 = Color3.new(1, 1, 1)
+playMusicBtn.Font = Enum.Font.SourceSans
+playMusicBtn.TextSize = 18
+playMusicBtn.Text = "Play Music"
+
+-- Music Toggle Button (Initially hidden)
+local musicToggleBtn = Instance.new("TextButton", frame)
+musicToggleBtn.Size = UDim2.new(0, 200, 0, 30)
+musicToggleBtn.Position = UDim2.new(0, 25, 0, 285)
+musicToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+musicToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+musicToggleBtn.Font = Enum.Font.SourceSans
+musicToggleBtn.TextSize = 18
+musicToggleBtn.Text = "Stop Music"
+musicToggleBtn.Visible = false
+
+-- Sound object
+local sound = Instance.new("Sound", player.Character or player.CharacterAdded:Wait())
+
+-- Play Music Logic
+playMusicBtn.MouseButton1Click:Connect(function()
+	local id = soundBox.Text:match("%d+")
+	if id then
+		sound:Stop()
+		sound.SoundId = "rbxassetid://" .. id
+		sound:Play()
+		playMusicBtn.Text = "Playing: " .. id
+		musicToggleBtn.Visible = true
+		musicToggleBtn.Text = "Stop Music"
+	else
+		playMusicBtn.Text = "Invalid ID"
+	end
+end)
+
+-- Music Toggle Logic
+musicToggleBtn.MouseButton1Click:Connect(function()
+	if sound.IsPlaying then
+		sound:Stop()
+		musicToggleBtn.Visible = false
+	else
+		sound:Play()
+		musicToggleBtn.Text = "Stop Music"
+	end
+end)
+
 -- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 120, 0, 30)
@@ -107,6 +169,10 @@ task.spawn(function()
 	end
 end)
 
+toggleButton.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+end)
+
 -- Speed logic
 local speeds = {16, 32, 50, 100}
 local index = 1
@@ -118,10 +184,6 @@ slider.MouseButton1Click:Connect(function()
 	humanoid.WalkSpeed = speed
 end)
 
-toggleButton.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
-end)
-
 -- ESP logic
 local espEnabled = false
 local highlights = {}
@@ -129,10 +191,8 @@ local highlights = {}
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
 	if highlights[targetPlayer] then return end
-
 	local char = targetPlayer.Character
 	if not char then return end
-
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.Adornee = char
@@ -142,7 +202,6 @@ local function createESP(targetPlayer)
 	highlight.OutlineTransparency = 0
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Parent = char
-
 	highlights[targetPlayer] = highlight
 end
 
@@ -208,32 +267,44 @@ local bodyVel = Instance.new("BodyVelocity")
 bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 bodyVel.Velocity = Vector3.new(0, 0, 0)
 
-local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-bodyAngularVelocity.MaxTorque = Vector3.new(0, 1e5, 0)
-bodyAngularVelocity.AngularVelocity = Vector3.new(0, 10, 0)
+local bodyGyro = Instance.new("BodyGyro")
+bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+bodyGyro.P = 1e5
+bodyGyro.D = 5000
 
 local crawlAnim = Instance.new("Animation")
-crawlAnim.AnimationId = "rbxassetid://616006778" -- crawling animation
+crawlAnim.AnimationId = "rbxassetid://616006778"
 local crawlTrack = humanoid:LoadAnimation(crawlAnim)
+
+local spinAngle = 0
 
 heliToggle.MouseButton1Click:Connect(function()
 	helicopterEnabled = not helicopterEnabled
 	heliToggle.Text = "Helicopter: " .. (helicopterEnabled and "ON" or "OFF")
 	if helicopterEnabled then
 		bodyVel.Parent = rootPart
-		bodyVel.Velocity = Vector3.new(0, 50, 0)
-
-		bodyAngularVelocity.Parent = rootPart
-
+		bodyGyro.Parent = rootPart
 		crawlTrack:Play()
 	else
 		bodyVel.Parent = nil
-		bodyAngularVelocity.Parent = nil
+		bodyGyro.Parent = nil
 		crawlTrack:Stop()
 	end
 end)
 
--- Handle respawn
+-- Helicopter spin effect
+task.spawn(function()
+	while true do
+		if helicopterEnabled and rootPart then
+			spinAngle += math.rad(10)
+			bodyVel.Velocity = Vector3.new(0, 50, 0)
+			bodyGyro.CFrame = CFrame.new(rootPart.Position) * CFrame.Angles(0, spinAngle, 0)
+		end
+		task.wait(0.03)
+	end
+end)
+
+-- Respawn handling
 player.CharacterAdded:Connect(function(char)
 	character = char
 	humanoid = char:WaitForChild("Humanoid")
@@ -243,29 +314,29 @@ player.CharacterAdded:Connect(function(char)
 	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 	bodyVel.Velocity = Vector3.new(0, 0, 0)
 
-	bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-	bodyAngularVelocity.MaxTorque = Vector3.new(0, 1e5, 0)
-	bodyAngularVelocity.AngularVelocity = Vector3.new(0, 10, 0)
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+	bodyGyro.P = 1e5
+	bodyGyro.D = 5000
 
 	crawlTrack = humanoid:LoadAnimation(crawlAnim)
 	humanoid.WalkSpeed = speeds[index]
 
 	if helicopterEnabled then
 		bodyVel.Parent = rootPart
+		bodyGyro.Parent = rootPart
 		bodyVel.Velocity = Vector3.new(0, 50, 0)
-		bodyAngularVelocity.Parent = rootPart
 		crawlTrack:Play()
 	end
 end)
 
--- Animated title effect
+-- Title animation
 task.spawn(function()
 	local t = 0
 	while true do
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
-
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.016)
