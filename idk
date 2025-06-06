@@ -10,7 +10,7 @@ screenGui.ResetOnSpawn = false
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 250, 0, 240)
-frame.Position = UDim2.new(0.5, -125, 0.5, -100)
+frame.Position = UDim2.new(0.5, -125, 0.5, -120)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -20,7 +20,7 @@ frame.Visible = true
 local background = Instance.new("ImageLabel", frame)
 background.Size = UDim2.new(1, 0, 1, 0)
 background.Position = UDim2.new(0, 0, 0, 0)
-background.Image = "rbxassetid://113208146688561)"
+background.Image = "rbxassetid://113208146688561"
 background.BackgroundTransparency = 1
 background.ImageTransparency = 0.3
 background.ZIndex = 0
@@ -103,12 +103,11 @@ toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle CoreX"
 
--- RGB animation for Toggle Button
+-- RGB animation
 task.spawn(function()
 	while true do
 		local hue = (tick() % 5) / 5
-		local color = Color3.fromHSV(hue, 1, 1)
-		toggleButton.BackgroundColor3 = color
+		toggleButton.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.03)
 	end
 end)
@@ -135,10 +134,8 @@ local highlights = {}
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
 	if highlights[targetPlayer] then return end
-
 	local char = targetPlayer.Character
 	if not char then return end
-
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.Adornee = char
@@ -148,7 +145,6 @@ local function createESP(targetPlayer)
 	highlight.OutlineTransparency = 0
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Parent = char
-
 	highlights[targetPlayer] = highlight
 end
 
@@ -211,74 +207,81 @@ end)
 
 -- Fly logic
 local flying = false
-local uis = game:GetService("UserInputService")
 local flySpeed = 50
-local bv, bg
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local keysPressed = {}
+local stopFlyFunc
 
-local function startFlying()
-	local root = character:WaitForChild("HumanoidRootPart")
-	bv = Instance.new("BodyVelocity")
-	bv.Velocity = Vector3.new(0, 0, 0)
-	bv.MaxForce = Vector3.new(1, 1, 1) * 100000
-	bv.Parent = root
+local function fly()
+	local rootPart = character:WaitForChild("HumanoidRootPart")
+	local bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bodyGyro.CFrame = rootPart.CFrame
+	bodyGyro.Parent = rootPart
 
-	bg = Instance.new("BodyGyro")
-	bg.CFrame = root.CFrame
-	bg.MaxTorque = Vector3.new(1, 1, 1) * 100000
-	bg.P = 10000
-	bg.Parent = root
+	local bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Velocity = Vector3.zero
+	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+	bodyVelocity.Parent = rootPart
 
-	local moveDir = Vector3.zero
+	humanoid.PlatformStand = true
 
-	local function updateDirection()
-		moveDir = Vector3.new(
-			(uis:IsKeyDown(Enum.KeyCode.D) and 1 or 0) - (uis:IsKeyDown(Enum.KeyCode.A) and 1 or 0),
-			0,
-			(uis:IsKeyDown(Enum.KeyCode.S) and 1 or 0) - (uis:IsKeyDown(Enum.KeyCode.W) and 1 or 0)
-		).Unit
-	end
+	local connection = RunService.RenderStepped:Connect(function()
+		local camCF = workspace.CurrentCamera.CFrame
+		local moveVec = Vector3.zero
 
-	local moveConn = uis.InputBegan:Connect(updateDirection)
-	local stopConn = uis.InputEnded:Connect(updateDirection)
+		if keysPressed["W"] then moveVec += camCF.LookVector end
+		if keysPressed["S"] then moveVec -= camCF.LookVector end
+		if keysPressed["A"] then moveVec -= camCF.RightVector end
+		if keysPressed["D"] then moveVec += camCF.RightVector end
+		if keysPressed["Space"] then moveVec += Vector3.new(0, 1, 0) end
+		if keysPressed["LeftShift"] then moveVec -= Vector3.new(0, 1, 0) end
 
-	task.spawn(function()
-		while flying do
-			if root then
-				updateDirection()
-				bv.Velocity = (workspace.CurrentCamera.CFrame:VectorToWorldSpace(moveDir)) * flySpeed
-				bg.CFrame = workspace.CurrentCamera.CFrame
-			end
-			task.wait()
-		end
+		moveVec = moveVec.Unit * flySpeed
+		if moveVec ~= moveVec then moveVec = Vector3.zero end
+		bodyVelocity.Velocity = moveVec
+		bodyGyro.CFrame = camCF
 	end)
+
+	return function()
+		connection:Disconnect()
+		bodyGyro:Destroy()
+		bodyVelocity:Destroy()
+		humanoid.PlatformStand = false
+	end
 end
 
-local function stopFlying()
-	if bv then bv:Destroy() bv = nil end
-	if bg then bg:Destroy() bg = nil end
-end
+UserInputService.InputBegan:Connect(function(input, processed)
+	if not processed then
+		keysPressed[input.KeyCode.Name] = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	keysPressed[input.KeyCode.Name] = false
+end)
 
 flyToggle.MouseButton1Click:Connect(function()
 	flying = not flying
 	flyToggle.Text = "Fly: " .. (flying and "ON" or "OFF")
 	if flying then
-		startFlying()
-	else
-		stopFlying()
+		stopFlyFunc = fly()
+	elseif stopFlyFunc then
+		stopFlyFunc()
 	end
 end)
 
--- Animated title effect
+-- Animated Title effect
 task.spawn(function()
 	local t = 0
 	while true do
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
-
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
-
 		task.wait(0.016)
 	end
 end)
