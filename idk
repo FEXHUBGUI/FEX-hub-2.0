@@ -54,7 +54,7 @@ godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 godToggle.TextColor3 = Color3.new(1, 1, 1)
 godToggle.Font = Enum.Font.SourceSans
 godToggle.TextSize = 18
-godToggle.Text = "God Mode: OFF"
+godToggle.Text = "God Mode(buggy): OFF"
 
 -- GUI Toggle Button
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -159,5 +159,5 @@ end)
 
 godToggle.MouseButton1Click:Connect(function()
 	godMode = not godMode
-	godToggle.Text = "God Mode: " .. (godMode(buggy) and "ON" or "OFF")
+	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
