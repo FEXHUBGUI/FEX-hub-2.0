@@ -17,7 +17,7 @@ frame.Active = true
 frame.Draggable = true
 frame.Visible = true
 
--- Title Container (static)
+-- Title Container (static background)
 local title = Instance.new("TextLabel", frame)
 title.Name = "TitleContainer"
 title.Size = UDim2.new(1, 0, 0, 30)
@@ -26,7 +26,7 @@ title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 title.Text = ""
 title.TextTransparency = 1
 
--- Animated Text (moves and changes color)
+-- Animated Title Text
 local animatedText = Instance.new("TextLabel", title)
 animatedText.Name = "AnimatedText"
 animatedText.Text = "CoreX Hub V1"
@@ -38,19 +38,19 @@ animatedText.Font = Enum.Font.SourceSansBold
 animatedText.TextSize = 20
 animatedText.TextStrokeTransparency = 0
 
--- 🌈 RGB + Squiggle Text Animation
+-- 🎨 Fast RGB Squiggle Text Animation
 task.spawn(function()
 	local t = 0
 	while true do
-		t += 0.05
-		local x = math.sin(t * 2) * 2
-		local y = math.cos(t * 3) * 1
-		local hue = (tick() % 5) / 5
+		t += 0.1
+		local x = math.sin(t * 4) * 2.5
+		local y = math.cos(t * 5) * 1.5
+		local hue = (tick() % 3) / 3
 
 		animatedText.Position = UDim2.new(0, x, 0, y)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 
-		task.wait(0.03)
+		task.wait(0.016) -- 60 FPS
 	end
 end)
 
