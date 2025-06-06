@@ -27,7 +27,6 @@ background.ZIndex = 0
 
 -- Title Bar
 local title = Instance.new("TextLabel", frame)
-title.Name = "TitleContainer"
 title.Size = UDim2.new(1, 0, 0, 30)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -37,7 +36,6 @@ title.ZIndex = 1
 
 -- Animated Title Text
 local animatedText = Instance.new("TextLabel", title)
-animatedText.Name = "AnimatedText"
 animatedText.Text = "CoreX Hub V1"
 animatedText.Size = UDim2.new(0, 200, 1, 0)
 animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -113,7 +111,6 @@ task.spawn(function()
 	end
 end)
 
--- Toggle menu
 toggleButton.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
 end)
@@ -191,6 +188,7 @@ end)
 
 -- God Mode logic
 local godMode = false
+
 task.spawn(function()
 	while true do
 		if godMode then
@@ -209,9 +207,10 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Float logic for mobile/gamepad
+-- Float Logic
 local floating = false
 local floatConnection
+
 floatToggle.MouseButton1Click:Connect(function()
 	floating = not floating
 	floatToggle.Text = "Float: " .. (floating and "ON" or "OFF")
@@ -236,9 +235,16 @@ floatToggle.MouseButton1Click:Connect(function()
 		local RunService = game:GetService("RunService")
 		floatConnection = RunService.Heartbeat:Connect(function()
 			local moveDirection = humanoid.MoveDirection
-			local moveVec = moveDirection * 50
-			bodyVelocity.Velocity = Vector3.new(moveVec.X, 1, moveVec.Z)
-			bodyGyro.CFrame = camera.CFrame
+			local camCF = camera.CFrame
+
+			local forward = Vector3.new(camCF.LookVector.X, 0, camCF.LookVector.Z).Unit
+			local right = Vector3.new(camCF.RightVector.X, 0, camCF.RightVector.Z).Unit
+
+			local flatMove = moveDirection.X * right + moveDirection.Z * forward
+			local velocity = flatMove * 50 + Vector3.new(0, moveDirection.Z * 40, 0)
+
+			bodyVelocity.Velocity = velocity
+			bodyGyro.CFrame = camCF
 		end)
 
 		floatToggle:SetAttribute("Gyro", bodyGyro)
