@@ -115,7 +115,7 @@ playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 playMusicButton.TextColor3 = Color3.new(1, 1, 1)
 playMusicButton.Font = Enum.Font.SourceSans
 playMusicButton.TextSize = 18
-playMusicButton.Text = "Play Music"
+playMusicButton.Text = "Play Music buggy"
 playMusicButton.Visible = false
 playMusicButton.ZIndex = 2
 
