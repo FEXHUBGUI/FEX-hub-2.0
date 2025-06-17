@@ -1,5 +1,3 @@
-local TweenService = game:GetService("TweenService")
-
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -10,29 +8,31 @@ local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
--- Welcome Label (initially visible)
+-- Welcome Label
 local welcomeLabel = Instance.new("TextLabel", screenGui)
-welcomeLabel.Size = UDim2.new(1, 0, 1, 0)
-welcomeLabel.BackgroundColor3 = Color3.new(0, 0, 0)
-welcomeLabel.BackgroundTransparency = 0.5
-welcomeLabel.Text = "Welcome to CoreX Hub"
+welcomeLabel.Size = UDim2.new(0, 300, 0, 50)
+welcomeLabel.Position = UDim2.new(0.5, -150, 0.4, 0)
+welcomeLabel.BackgroundColor3 = Color3.new(0, 0, 0) -- fully black background
+welcomeLabel.BackgroundTransparency = 0 -- no transparency
 welcomeLabel.TextColor3 = Color3.new(1, 1, 1)
 welcomeLabel.Font = Enum.Font.SourceSansBold
-welcomeLabel.TextSize = 36
-welcomeLabel.TextScaled = true
+welcomeLabel.TextSize = 28
+welcomeLabel.Text = "Welcome to CoreX Hub"
+welcomeLabel.ZIndex = 1000
+welcomeLabel.TextStrokeTransparency = 0.7
 welcomeLabel.TextWrapped = true
-welcomeLabel.ZIndex = 10000
-welcomeLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-welcomeLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 
--- Main Frame (initially invisible until welcome fades)
+-- Hide the menu initially
+local frameVisible = false
+
+-- Main Frame
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 250, 0, 320)
 frame.Position = UDim2.new(0.5, -125, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
-frame.Visible = false -- hide initially
+frame.Visible = false
 
 -- Background Image
 local background = Instance.new("ImageLabel", frame)
@@ -169,13 +169,12 @@ end)
 local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 120, 0, 30)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
 toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle CoreX"
 
--- RGB toggle animation
 task.spawn(function()
 	while true do
 		toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
@@ -320,19 +319,6 @@ player.CharacterAdded:Connect(function(char)
 	end
 end)
 
--- Welcome message fade out after 2 seconds, fade duration 3 seconds
-local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
-task.delay(2, function()
-	local fadeTween = TweenService:Create(welcomeLabel, tweenInfo, {BackgroundTransparency = 1, TextTransparency = 1})
-	fadeTween:Play()
-	fadeTween.Completed:Connect(function()
-		welcomeLabel:Destroy()
-		frame.Visible = true
-	end)
-end)
-
--- Animated title text rainbow effect
 task.spawn(function()
 	local t = 0
 	while true do
@@ -344,4 +330,16 @@ task.spawn(function()
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.016)
 	end
+end)
+
+-- Welcome fade logic
+task.spawn(function()
+	wait(2) -- keep welcome label fully visible for 2 seconds
+	for i = 1, 30 do
+		welcomeLabel.TextTransparency = i / 30
+		welcomeLabel.BackgroundTransparency = i / 30
+		task.wait(0.05)
+	end
+	welcomeLabel:Destroy()
+	frame.Visible = true
 end)
