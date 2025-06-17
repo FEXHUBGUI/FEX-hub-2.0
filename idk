@@ -8,46 +8,22 @@ local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
--- Slightly invisible smaller RGB background behind main frame
-local rgbBackground = Instance.new("Frame", screenGui)
-rgbBackground.Size = UDim2.new(0, 200, 0, 300) -- smaller than main frame (250x360)
-rgbBackground.Position = UDim2.new(0.5, -100, 0.5, -150) -- centered behind main frame
-rgbBackground.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
-rgbBackground.BackgroundTransparency = 0.7 -- slightly invisible
-rgbBackground.ZIndex = 0
-rgbBackground.AnchorPoint = Vector2.new(0, 0)
-
-task.spawn(function()
-    local hue = 0
-    while true do
-        hue = (hue + 0.005) % 1
-        rgbBackground.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-        task.wait(0.03)
-    end
-end)
-
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 250, 0, 360)
 frame.Position = UDim2.new(0.5, -125, 0.5, -180)
-frame.BackgroundColor3 = Color3.fromHSV(0, 1, 1)  -- initial color
-frame.BackgroundTransparency = 0.6  -- slightly invisible
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
 frame.Visible = true
-frame.ZIndex = 1
+frame.BackgroundTransparency = 1  -- Hide default background so RGB bg is visible
 
--- RGB color cycling for main frame background
-task.spawn(function()
-    local hue = 0
-    while true do
-        hue = (hue + 0.005) % 1
-        frame.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-        task.wait(0.03)
-    end
-end)
-
-
+-- RGB Background (slightly invisible)
+local rgbBackground = Instance.new("Frame", frame)
+rgbBackground.Size = UDim2.new(1, 0, 1, 0)
+rgbBackground.Position = UDim2.new(0, 0, 0, 0)
+rgbBackground.BackgroundTransparency = 0.75  -- Slightly invisible
+rgbBackground.BorderSizePixel = 0
 
 -- Background Image
 local background = Instance.new("ImageLabel", frame)
@@ -486,6 +462,16 @@ task.spawn(function()
 
 		local hue = (tick() % 5) / 5
 		statsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
-		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
+		statsLabel.Text = string.format("FPS: %d | Ping: %s", fps, ping)
+	end
+end)
+
+-- Animate RGB Background color continuously
+task.spawn(function()
+	local h = 0
+	while true do
+		rgbBackground.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+		h = (h + 0.005) % 1
+		task.wait(0.03)
 	end
 end)
