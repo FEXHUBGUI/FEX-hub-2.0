@@ -88,7 +88,7 @@ godToggle.ZIndex = 2
 
 -- Helicopter Button
 local heliToggle = Instance.new("TextButton", frame)
-heliToggle.Size = UDim2.new(0, 200, 0, 30)
+heliToggle.Size = UDim2.new(0, 50, 0, 50)
 heliToggle.Position = UDim2.new(0, 25, 0, 165)
 heliToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 heliToggle.TextColor3 = Color3.new(1, 1, 1)
@@ -104,7 +104,7 @@ musicSound.Volume = 1
 local musicEnabled = false
 
 local musicInput = Instance.new("TextBox", frame)
-musicInput.Size = UDim2.new(0, 200, 0, 30)
+musicInput.Size = UDim2.new(0, 50, 0, 50)
 musicInput.Position = UDim2.new(0, 25, 0, 205)
 musicInput.PlaceholderText = "Enter Sound ID"
 musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -116,7 +116,7 @@ musicInput.Visible = false
 musicInput.ZIndex = 2
 
 local playMusicButton = Instance.new("TextButton", frame)
-playMusicButton.Size = UDim2.new(0, 200, 0, 30)
+playMusicButton.Size = UDim2.new(0, 50, 0, 50)
 playMusicButton.Position = UDim2.new(0, 25, 0, 245)
 playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 playMusicButton.TextColor3 = Color3.new(1, 1, 1)
@@ -127,7 +127,7 @@ playMusicButton.Visible = false
 playMusicButton.ZIndex = 2
 
 local musicToggle = Instance.new("TextButton", frame)
-musicToggle.Size = UDim2.new(0, 200, 0, 30)
+musicToggle.Size = UDim2.new(0, 50, 0, 50)
 musicToggle.Position = UDim2.new(0, 25, 0, 285)
 musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 musicToggle.TextColor3 = Color3.new(1, 1, 1)
@@ -158,7 +158,7 @@ end)
 
 -- FPS Boost Button
 local fpsBoostToggle = Instance.new("TextButton", frame)
-fpsBoostToggle.Size = UDim2.new(0, 200, 0, 30)
+fpsBoostToggle.Size = UDim2.new(0, 50, 0, 50)
 fpsBoostToggle.Position = UDim2.new(0, 25, 0, 325)
 fpsBoostToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 fpsBoostToggle.TextColor3 = Color3.new(1, 1, 1)
