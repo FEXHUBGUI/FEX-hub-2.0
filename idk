@@ -180,9 +180,10 @@ toggleButton.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
 end)
 
--- ESP logic
+-- Rainbow ESP logic
 local espEnabled = false
 local highlights = {}
+local hue = 0
 
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
@@ -193,9 +194,7 @@ local function createESP(targetPlayer)
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.Adornee = char
-	highlight.FillColor = Color3.fromRGB(255, 0, 0)
 	highlight.FillTransparency = 0.5
-	highlight.OutlineColor = Color3.new(1, 1, 1)
 	highlight.OutlineTransparency = 0
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Parent = char
@@ -211,6 +210,12 @@ local function removeESP(targetPlayer)
 end
 
 local function updateESP()
+	hue = (hue + 0.01) % 1 -- Increment hue smoothly
+	for plr, highlight in pairs(highlights) do
+		highlight.FillColor = Color3.fromHSV(hue, 1, 1)
+		highlight.OutlineColor = Color3.fromHSV((hue + 0.5) % 1, 1, 1)
+	end
+
 	for _, plr in pairs(game.Players:GetPlayers()) do
 		if espEnabled then
 			createESP(plr)
@@ -239,13 +244,13 @@ espToggle.MouseButton1Click:Connect(function()
 	updateESP()
 end)
 
--- ✅ ESP Auto-Refresh
+-- ✅ ESP Auto-Refresh + Rainbow Effect Loop
 task.spawn(function()
 	while true do
 		if espEnabled then
 			updateESP()
 		end
-		task.wait(1)
+		task.wait(0.05) -- smooth color update
 	end
 end)
 
