@@ -55,7 +55,7 @@ animatedText.ZIndex = 2
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
-slider.Size = UDim2.new(0, 200, 0, 30)
+slider.Size = UDim2.new(0, 50, 0, 50)
 slider.Position = UDim2.new(0, 25, 0, 45)
 slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 slider.TextColor3 = Color3.new(1, 1, 1)
