@@ -158,7 +158,6 @@ toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle CoreX"
 
--- RGB toggle animation
 task.spawn(function()
 	while true do
 		toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
@@ -188,7 +187,6 @@ local highlights = {}
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
 	if highlights[targetPlayer] then return end
-
 	local char = targetPlayer.Character
 	if not char then return end
 
@@ -309,29 +307,27 @@ task.spawn(function()
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
-
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.016)
 	end
 end)
 
--- FPS & Ping Display
+-- 🆕 FPS & Ping Counter
 local statsLabel = Instance.new("TextLabel", screenGui)
-statsLabel.Size = UDim2.new(0, 200, 0, 30)
-statsLabel.Position = UDim2.new(1, -210, 0, 10)
-statsLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+statsLabel.Size = UDim2.new(0, 200, 0, 20)
+statsLabel.Position = UDim2.new(0, 10, 0, 45) -- Near health bar
+statsLabel.BackgroundTransparency = 1
 statsLabel.TextColor3 = Color3.new(1, 1, 1)
-statsLabel.Font = Enum.Font.SourceSans
+statsLabel.Font = Enum.Font.SourceSansBold
 statsLabel.TextSize = 16
 statsLabel.Text = "FPS: ... | Ping: ..."
-statsLabel.ZIndex = 10
 statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+statsLabel.ZIndex = 1000
 
 task.spawn(function()
 	local RunService = game:GetService("RunService")
 	local Stats = game:GetService("Stats")
-
 	local frameCount = 0
 	local elapsedTime = 0
 	local fps = 60
@@ -348,17 +344,19 @@ task.spawn(function()
 		end
 
 		local ping = "..."
-		local success, performanceStats = pcall(function()
+		local success, perfStats = pcall(function()
 			return Stats:FindFirstChild("PerformanceStats")
 		end)
 
-		if success and performanceStats then
-			local pingStat = performanceStats:FindFirstChild("Ping")
+		if success and perfStats then
+			local pingStat = perfStats:FindFirstChild("Ping")
 			if pingStat then
 				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
 			end
 		end
 
+		local hue = (tick() % 5) / 5
+		statsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
 	end
 end)
