@@ -239,6 +239,16 @@ espToggle.MouseButton1Click:Connect(function()
 	updateESP()
 end)
 
+-- ✅ ESP Auto-Refresh
+task.spawn(function()
+	while true do
+		if espEnabled then
+			updateESP()
+		end
+		task.wait(1)
+	end
+end)
+
 -- God Mode logic
 local godMode = false
 task.spawn(function()
@@ -301,6 +311,7 @@ player.CharacterAdded:Connect(function(char)
 	end
 end)
 
+-- Title ripple + color animation
 task.spawn(function()
 	local t = 0
 	while true do
@@ -313,10 +324,10 @@ task.spawn(function()
 	end
 end)
 
--- 🆕 FPS & Ping Counter
+-- FPS & Ping Counter
 local statsLabel = Instance.new("TextLabel", screenGui)
 statsLabel.Size = UDim2.new(0, 200, 0, 20)
-statsLabel.Position = UDim2.new(0, 10, 0, 45) -- Near health bar
+statsLabel.Position = UDim2.new(0, 10, 0, 45)
 statsLabel.BackgroundTransparency = 1
 statsLabel.TextColor3 = Color3.new(1, 1, 1)
 statsLabel.Font = Enum.Font.SourceSansBold
