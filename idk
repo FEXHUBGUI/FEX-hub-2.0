@@ -8,14 +8,28 @@ local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
--- Main Frame
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 360)
-frame.Position = UDim2.new(0.5, -125, 0.5, -180)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.Active = true
-frame.Draggable = true
-frame.Visible = true
+-- Main Frame (Smaller size)
+frame.Size = UDim2.new(0, 220, 0, 320)  -- made smaller
+frame.Position = UDim2.new(0.5, -110, 0.5, -160)
+
+-- RGB Background (slightly invisible)
+local background = Instance.new("ImageLabel", frame)
+background.Size = UDim2.new(1, 0, 1, 0)
+background.Image = "rbxassetid://113208146688561"  -- keep existing image
+background.BackgroundTransparency = 0.8  -- more transparent (slightly invisible)
+background.ImageTransparency = 0.7  -- increase transparency for subtle effect
+background.ZIndex = 0
+
+-- Add RGB effect loop for background
+task.spawn(function()
+    local hue = 0
+    while true do
+        hue = (hue + 0.005) % 1
+        background.ImageColor3 = Color3.fromHSV(hue, 0.6, 1) -- subtle saturation for soft RGB
+        task.wait(0.03)
+    end
+end)
+
 
 -- Background Image
 local background = Instance.new("ImageLabel", frame)
