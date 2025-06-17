@@ -1,3 +1,4 @@
+-- Local references
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -5,262 +6,109 @@ local rootPart = character:WaitForChild("HumanoidRootPart")
 
 -- GUI Setup
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "SpeedGUI"
+screenGui.Name = "CoreXGUI"
 screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 320)
-frame.Position = UDim2.new(0.5, -125, 0.5, -160)
+frame.Size = UDim2.new(0, 250, 0, 350)
+frame.Position = UDim2.new(0.5, -125, 0.5, -175)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
 frame.Visible = true
 
--- Background Image
-local background = Instance.new("ImageLabel", frame)
-background.Size = UDim2.new(1, 0, 1, 0)
-background.Image = "rbxassetid://113208146688561"
-background.BackgroundTransparency = 1
-background.ImageTransparency = 0.3
-background.ZIndex = 0
+-- Tabs
+local tabBar = Instance.new("Frame", frame)
+tabBar.Size = UDim2.new(1, 0, 0, 30)
+tabBar.Position = UDim2.new(0, 0, 0, 0)
+tabBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 
--- Title Bar
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 30)
-title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-title.Text = ""
-title.TextTransparency = 1
-title.ZIndex = 1
+local function createTabButton(name, position)
+	local btn = Instance.new("TextButton", tabBar)
+	btn.Size = UDim2.new(0, 80, 1, 0)
+	btn.Position = UDim2.new(0, position, 0, 0)
+	btn.Text = name
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 16
+	return btn
+end
 
--- Animated Title Text
-local animatedText = Instance.new("TextLabel", title)
-animatedText.Text = "CoreX Hub V1"
-animatedText.Size = UDim2.new(0, 200, 1, 0)
-animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
-animatedText.Position = UDim2.new(0.5, 0, 0.5, 0)
-animatedText.BackgroundTransparency = 1
-animatedText.TextColor3 = Color3.new(1, 1, 1)
-animatedText.Font = Enum.Font.SourceSansBold
-animatedText.TextSize = 20
-animatedText.ZIndex = 2
+local playerTabBtn = createTabButton("Player", 0)
+local visualTabBtn = createTabButton("Visual", 85)
+local audioTabBtn = createTabButton("Audio", 170)
 
--- Speed Button
-local slider = Instance.new("TextButton", frame)
-slider.Size = UDim2.new(0, 200, 0, 30)
-slider.Position = UDim2.new(0, 25, 0, 45)
-slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-slider.TextColor3 = Color3.new(1, 1, 1)
-slider.Font = Enum.Font.SourceSans
-slider.TextSize = 18
-slider.Text = "Speed: 16"
-slider.ZIndex = 2
+-- Content Holder
+local contentFrame = Instance.new("Frame", frame)
+contentFrame.Size = UDim2.new(1, 0, 1, -30)
+contentFrame.Position = UDim2.new(0, 0, 0, 30)
+contentFrame.BackgroundTransparency = 1
 
--- ESP Button
-local espToggle = Instance.new("TextButton", frame)
-espToggle.Size = UDim2.new(0, 200, 0, 30)
-espToggle.Position = UDim2.new(0, 25, 0, 85)
-espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-espToggle.TextColor3 = Color3.new(1, 1, 1)
-espToggle.Font = Enum.Font.SourceSans
-espToggle.TextSize = 18
-espToggle.Text = "ESP: OFF"
-espToggle.ZIndex = 2
+-- Helper to create content pages
+local function createPage()
+	local page = Instance.new("Frame")
+	page.Size = UDim2.new(1, 0, 1, 0)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.Parent = contentFrame
+	return page
+end
 
--- God Mode Button
-local godToggle = Instance.new("TextButton", frame)
-godToggle.Size = UDim2.new(0, 200, 0, 30)
-godToggle.Position = UDim2.new(0, 25, 0, 125)
-godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-godToggle.TextColor3 = Color3.new(1, 1, 1)
-godToggle.Font = Enum.Font.SourceSans
-godToggle.TextSize = 18
-godToggle.Text = "God Mode: OFF"
-godToggle.ZIndex = 2
+local playerPage = createPage()
+local visualPage = createPage()
+local audioPage = createPage()
 
--- Helicopter Button
-local heliToggle = Instance.new("TextButton", frame)
-heliToggle.Size = UDim2.new(0, 200, 0, 30)
-heliToggle.Position = UDim2.new(0, 25, 0, 165)
-heliToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-heliToggle.TextColor3 = Color3.new(1, 1, 1)
-heliToggle.Font = Enum.Font.SourceSans
-heliToggle.TextSize = 18
-heliToggle.Text = "Helicopter: OFF"
-heliToggle.ZIndex = 2
+-- Toggle page visibility
+local function switchTo(page)
+	playerPage.Visible = false
+	visualPage.Visible = false
+	audioPage.Visible = false
+	page.Visible = true
+end
 
--- MUSIC SYSTEM
-local musicSound = Instance.new("Sound", workspace)
-musicSound.Looped = true
-musicSound.Volume = 1
-local musicEnabled = false
+playerTabBtn.MouseButton1Click:Connect(function() switchTo(playerPage) end)
+visualTabBtn.MouseButton1Click:Connect(function() switchTo(visualPage) end)
+audioTabBtn.MouseButton1Click:Connect(function() switchTo(audioPage) end)
+switchTo(playerPage)
 
-local musicInput = Instance.new("TextBox", frame)
-musicInput.Size = UDim2.new(0, 200, 0, 30)
-musicInput.Position = UDim2.new(0, 25, 0, 205)
-musicInput.PlaceholderText = "Enter Sound ID"
-musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-musicInput.TextColor3 = Color3.new(1, 1, 1)
-musicInput.Font = Enum.Font.SourceSans
-musicInput.TextSize = 18
-musicInput.Text = ""
-musicInput.Visible = false
-musicInput.ZIndex = 2
-
-local playMusicButton = Instance.new("TextButton", frame)
-playMusicButton.Size = UDim2.new(0, 200, 0, 30)
-playMusicButton.Position = UDim2.new(0, 25, 0, 245)
-playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-playMusicButton.TextColor3 = Color3.new(1, 1, 1)
-playMusicButton.Font = Enum.Font.SourceSans
-playMusicButton.TextSize = 18
-playMusicButton.Text = "Play Music buggy"
-playMusicButton.Visible = false
-playMusicButton.ZIndex = 2
-
-local musicToggle = Instance.new("TextButton", frame)
-musicToggle.Size = UDim2.new(0, 200, 0, 30)
-musicToggle.Position = UDim2.new(0, 25, 0, 285)
-musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-musicToggle.TextColor3 = Color3.new(1, 1, 1)
-musicToggle.Font = Enum.Font.SourceSans
-musicToggle.TextSize = 18
-musicToggle.Text = "Music: OFF"
-musicToggle.ZIndex = 2
-
-musicToggle.MouseButton1Click:Connect(function()
-	musicEnabled = not musicEnabled
-	musicToggle.Text = "Music: " .. (musicEnabled and "ON" or "OFF")
-	musicInput.Visible = musicEnabled
-	playMusicButton.Visible = musicEnabled
-	if not musicEnabled then
-		musicSound:Stop()
-	end
-end)
-
-playMusicButton.MouseButton1Click:Connect(function()
-	local id = musicInput.Text:match("%d+")
-	if id then
-		musicSound.SoundId = "rbxassetid://" .. id
-		musicSound:Play()
-	else
-		warn("Invalid Sound ID")
-	end
-end)
-
--- Toggle GUI Button
-local toggleButton = Instance.new("TextButton", screenGui)
-toggleButton.Size = UDim2.new(0, 120, 0, 30)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextSize = 18
-toggleButton.Text = "Toggle CoreX"
-
-task.spawn(function()
-	while true do
-		toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
-		task.wait(0.03)
-	end
-end)
-
--- Speed logic
+-- ========== PLAYER TAB ==========
+-- Speed
 local speeds = {16, 32, 50, 100}
 local index = 1
-slider.MouseButton1Click:Connect(function()
-	index += 1
-	if index > #speeds then index = 1 end
+local speedBtn = Instance.new("TextButton", playerPage)
+speedBtn.Size = UDim2.new(0, 200, 0, 30)
+speedBtn.Position = UDim2.new(0, 25, 0, 10)
+speedBtn.Text = "Speed: 16"
+speedBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+speedBtn.TextColor3 = Color3.new(1, 1, 1)
+speedBtn.Font = Enum.Font.SourceSans
+speedBtn.TextSize = 18
+
+speedBtn.MouseButton1Click:Connect(function()
+	index = (index % #speeds) + 1
 	local speed = speeds[index]
-	slider.Text = "Speed: " .. speed
+	speedBtn.Text = "Speed: " .. speed
 	humanoid.WalkSpeed = speed
 end)
 
-toggleButton.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
-end)
-
--- Rainbow ESP logic
-local espEnabled = false
-local highlights = {}
-local hue = 0
-
-local function createESP(targetPlayer)
-	if targetPlayer == player then return end
-	if highlights[targetPlayer] then return end
-	local char = targetPlayer.Character
-	if not char then return end
-
-	local highlight = Instance.new("Highlight")
-	highlight.Name = "ESPHighlight"
-	highlight.Adornee = char
-	highlight.FillTransparency = 0.5
-	highlight.OutlineTransparency = 0
-	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	highlight.Parent = char
-
-	highlights[targetPlayer] = highlight
-end
-
-local function removeESP(targetPlayer)
-	if highlights[targetPlayer] then
-		highlights[targetPlayer]:Destroy()
-		highlights[targetPlayer] = nil
-	end
-end
-
-local function updateESP()
-	hue = (hue + 0.01) % 1 -- Increment hue smoothly
-	for plr, highlight in pairs(highlights) do
-		highlight.FillColor = Color3.fromHSV(hue, 1, 1)
-		highlight.OutlineColor = Color3.fromHSV((hue + 0.5) % 1, 1, 1)
-	end
-
-	for _, plr in pairs(game.Players:GetPlayers()) do
-		if espEnabled then
-			createESP(plr)
-		else
-			removeESP(plr)
-		end
-	end
-end
-
-game.Players.PlayerAdded:Connect(function(p)
-	p.CharacterAdded:Connect(function()
-		if espEnabled then
-			wait(1)
-			createESP(p)
-		end
-	end)
-end)
-
-game.Players.PlayerRemoving:Connect(function(p)
-	removeESP(p)
-end)
-
-espToggle.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-	updateESP()
-end)
-
--- ✅ ESP Auto-Refresh + Rainbow Effect Loop
-task.spawn(function()
-	while true do
-		if espEnabled then
-			updateESP()
-		end
-		task.wait(0.05) -- smooth color update
-	end
-end)
-
--- God Mode logic
+-- God Mode
 local godMode = false
+local godBtn = Instance.new("TextButton", playerPage)
+godBtn.Size = UDim2.new(0, 200, 0, 30)
+godBtn.Position = UDim2.new(0, 25, 0, 50)
+godBtn.Text = "God Mode: OFF"
+godBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+godBtn.TextColor3 = Color3.new(1, 1, 1)
+godBtn.Font = Enum.Font.SourceSans
+godBtn.TextSize = 18
+
 task.spawn(function()
 	while true do
-		if godMode then
+		if godMode and humanoid then
 			pcall(function()
-				if humanoid and humanoid.Health < humanoid.MaxHealth then
+				if humanoid.Health < humanoid.MaxHealth then
 					humanoid.Health = humanoid.MaxHealth
 				end
 			end)
@@ -269,27 +117,35 @@ task.spawn(function()
 	end
 end)
 
-godToggle.MouseButton1Click:Connect(function()
+godBtn.MouseButton1Click:Connect(function()
 	godMode = not godMode
-	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
+	godBtn.Text = "God Mode: " .. (godMode and "ON" or "OFF")
 end)
 
--- Helicopter logic
+-- Helicopter Mode
+local heliBtn = Instance.new("TextButton", playerPage)
+heliBtn.Size = UDim2.new(0, 200, 0, 30)
+heliBtn.Position = UDim2.new(0, 25, 0, 90)
+heliBtn.Text = "Helicopter: OFF"
+heliBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+heliBtn.TextColor3 = Color3.new(1, 1, 1)
+heliBtn.Font = Enum.Font.SourceSans
+heliBtn.TextSize = 18
+
 local helicopterEnabled = false
 local bodyVel = Instance.new("BodyVelocity")
 bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-bodyVel.Velocity = Vector3.new(0, 0, 0)
+bodyVel.Velocity = Vector3.new(0, 50, 0)
 
 local crawlAnim = Instance.new("Animation")
 crawlAnim.AnimationId = "rbxassetid://616006778"
 local crawlTrack = humanoid:LoadAnimation(crawlAnim)
 
-heliToggle.MouseButton1Click:Connect(function()
+heliBtn.MouseButton1Click:Connect(function()
 	helicopterEnabled = not helicopterEnabled
-	heliToggle.Text = "Helicopter: " .. (helicopterEnabled and "ON" or "OFF")
+	heliBtn.Text = "Helicopter: " .. (helicopterEnabled and "ON" or "OFF")
 	if helicopterEnabled then
 		bodyVel.Parent = rootPart
-		bodyVel.Velocity = Vector3.new(0, 50, 0)
 		crawlTrack:Play()
 	else
 		bodyVel.Parent = nil
@@ -301,78 +157,123 @@ player.CharacterAdded:Connect(function(char)
 	character = char
 	humanoid = char:WaitForChild("Humanoid")
 	rootPart = char:WaitForChild("HumanoidRootPart")
-
 	bodyVel = Instance.new("BodyVelocity")
 	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-	bodyVel.Velocity = Vector3.new(0, 0, 0)
-
+	bodyVel.Velocity = Vector3.new(0, 50, 0)
 	crawlTrack = humanoid:LoadAnimation(crawlAnim)
 	humanoid.WalkSpeed = speeds[index]
+end)
 
-	if helicopterEnabled then
-		bodyVel.Parent = rootPart
-		bodyVel.Velocity = Vector3.new(0, 50, 0)
-		crawlTrack:Play()
+-- ========== VISUAL TAB ==========
+local espEnabled = false
+local highlights = {}
+local hue = 0
+
+local espBtn = Instance.new("TextButton", visualPage)
+espBtn.Size = UDim2.new(0, 200, 0, 30)
+espBtn.Position = UDim2.new(0, 25, 0, 10)
+espBtn.Text = "ESP: OFF"
+espBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.SourceSans
+espBtn.TextSize = 18
+
+local function createESP(targetPlayer)
+	if targetPlayer == player or highlights[targetPlayer] then return end
+	local char = targetPlayer.Character
+	if not char then return end
+	local highlight = Instance.new("Highlight")
+	highlight.Adornee = char
+	highlight.FillTransparency = 0.5
+	highlight.OutlineTransparency = 0
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = char
+	highlights[targetPlayer] = highlight
+end
+
+local function removeESP(targetPlayer)
+	if highlights[targetPlayer] then
+		highlights[targetPlayer]:Destroy()
+		highlights[targetPlayer] = nil
+	end
+end
+
+espBtn.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+	for _, p in pairs(game.Players:GetPlayers()) do
+		if espEnabled then createESP(p) else removeESP(p) end
 	end
 end)
 
--- Title ripple + color animation
 task.spawn(function()
-	local t = 0
 	while true do
-		t += 0.05
-		local ripple = math.sin(t * 2) * 4
-		local hue = (tick() % 3) / 3
-		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
-		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
-		task.wait(0.016)
-	end
-end)
-
--- FPS & Ping Counter
-local statsLabel = Instance.new("TextLabel", screenGui)
-statsLabel.Size = UDim2.new(0, 200, 0, 20)
-statsLabel.Position = UDim2.new(0, 10, 0, 45)
-statsLabel.BackgroundTransparency = 1
-statsLabel.TextColor3 = Color3.new(1, 1, 1)
-statsLabel.Font = Enum.Font.SourceSansBold
-statsLabel.TextSize = 16
-statsLabel.Text = "FPS: ... | Ping: ..."
-statsLabel.TextXAlignment = Enum.TextXAlignment.Left
-statsLabel.ZIndex = 1000
-
-task.spawn(function()
-	local RunService = game:GetService("RunService")
-	local Stats = game:GetService("Stats")
-	local frameCount = 0
-	local elapsedTime = 0
-	local fps = 60
-
-	while true do
-		local dt = RunService.RenderStepped:Wait()
-		frameCount += 1
-		elapsedTime += dt
-
-		if elapsedTime >= 1 then
-			fps = frameCount
-			frameCount = 0
-			elapsedTime = 0
-		end
-
-		local ping = "..."
-		local success, perfStats = pcall(function()
-			return Stats:FindFirstChild("PerformanceStats")
-		end)
-
-		if success and perfStats then
-			local pingStat = perfStats:FindFirstChild("Ping")
-			if pingStat then
-				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
+		if espEnabled then
+			hue = (hue + 0.01) % 1
+			for _, h in pairs(highlights) do
+				h.FillColor = Color3.fromHSV(hue, 1, 1)
+				h.OutlineColor = Color3.fromHSV((hue + 0.5) % 1, 1, 1)
 			end
 		end
+		task.wait(0.05)
+	end
+end)
 
-		local hue = (tick() % 5) / 5
-		statsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
-		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
+game.Players.PlayerAdded:Connect(function(p)
+	p.CharacterAdded:Connect(function()
+		if espEnabled then task.wait(1) createESP(p) end
+	end)
+end)
+game.Players.PlayerRemoving:Connect(removeESP)
+
+-- ========== AUDIO TAB ==========
+local musicSound = Instance.new("Sound", workspace)
+musicSound.Looped = true
+musicSound.Volume = 1
+local musicEnabled = false
+
+local musicToggle = Instance.new("TextButton", audioPage)
+musicToggle.Size = UDim2.new(0, 200, 0, 30)
+musicToggle.Position = UDim2.new(0, 25, 0, 10)
+musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+musicToggle.TextColor3 = Color3.new(1, 1, 1)
+musicToggle.Font = Enum.Font.SourceSans
+musicToggle.TextSize = 18
+musicToggle.Text = "Music: OFF"
+
+local musicInput = Instance.new("TextBox", audioPage)
+musicInput.Size = UDim2.new(0, 200, 0, 30)
+musicInput.Position = UDim2.new(0, 25, 0, 50)
+musicInput.PlaceholderText = "Enter Sound ID"
+musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+musicInput.TextColor3 = Color3.new(1, 1, 1)
+musicInput.Font = Enum.Font.SourceSans
+musicInput.TextSize = 18
+musicInput.Text = ""
+musicInput.Visible = false
+
+local playBtn = Instance.new("TextButton", audioPage)
+playBtn.Size = UDim2.new(0, 200, 0, 30)
+playBtn.Position = UDim2.new(0, 25, 0, 90)
+playBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+playBtn.TextColor3 = Color3.new(1, 1, 1)
+playBtn.Font = Enum.Font.SourceSans
+playBtn.TextSize = 18
+playBtn.Text = "Play Music"
+playBtn.Visible = false
+
+musicToggle.MouseButton1Click:Connect(function()
+	musicEnabled = not musicEnabled
+	musicToggle.Text = "Music: " .. (musicEnabled and "ON" or "OFF")
+	musicInput.Visible = musicEnabled
+	playBtn.Visible = musicEnabled
+	if not musicEnabled then musicSound:Stop() end
+end)
+
+playBtn.MouseButton1Click:Connect(function()
+	local id = musicInput.Text:match("%d+")
+	if id then
+		musicSound.SoundId = "rbxassetid://" .. id
+		musicSound:Play()
 	end
 end)
