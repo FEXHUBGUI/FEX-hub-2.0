@@ -6,7 +6,7 @@ local rootPart = character:WaitForChild("HumanoidRootPart")
 
 -- GUI Setup
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "CoreXGUI"
+screenGui.Name = "CoreX Hub"
 screenGui.ResetOnSpawn = false
 
 -- Main Frame
