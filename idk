@@ -1,4 +1,3 @@
--- Start of your existing script
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -11,8 +10,8 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 360)
-frame.Position = UDim2.new(0.5, -125, 0.5, -180)
+frame.Size = UDim2.new(0, 250, 0, 320)
+frame.Position = UDim2.new(0.5, -125, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -146,53 +145,6 @@ playMusicButton.MouseButton1Click:Connect(function()
 		musicSound:Play()
 	else
 		warn("Invalid Sound ID")
-	end
-end)
-
--- FPS & Ping Display
-local statsLabel = Instance.new("TextLabel", frame)
-statsLabel.Size = UDim2.new(0, 200, 0, 30)
-statsLabel.Position = UDim2.new(0, 25, 0, 325)
-statsLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-statsLabel.TextColor3 = Color3.new(1, 1, 1)
-statsLabel.Font = Enum.Font.SourceSans
-statsLabel.TextSize = 16
-statsLabel.Text = "FPS: ... | Ping: ..."
-statsLabel.ZIndex = 2
-statsLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-task.spawn(function()
-	local RunService = game:GetService("RunService")
-	local Stats = game:GetService("Stats")
-
-	local frameCount = 0
-	local elapsedTime = 0
-	local fps = 60
-
-	while true do
-		local dt = RunService.RenderStepped:Wait()
-		frameCount += 1
-		elapsedTime += dt
-
-		if elapsedTime >= 1 then
-			fps = frameCount
-			frameCount = 0
-			elapsedTime = 0
-		end
-
-		local ping = "..."
-		local success, networkStats = pcall(function()
-			return Stats:FindFirstChild("PerformanceStats")
-		end)
-
-		if success and networkStats then
-			local pingStat = networkStats:FindFirstChild("Ping")
-			if pingStat then
-				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
-			end
-		end
-
-		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
 	end
 end)
 
@@ -351,7 +303,6 @@ player.CharacterAdded:Connect(function(char)
 	end
 end)
 
--- Animated Title Text Ripple
 task.spawn(function()
 	local t = 0
 	while true do
@@ -362,5 +313,52 @@ task.spawn(function()
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.016)
+	end
+end)
+
+-- FPS & Ping Display
+local statsLabel = Instance.new("TextLabel", screenGui)
+statsLabel.Size = UDim2.new(0, 200, 0, 30)
+statsLabel.Position = UDim2.new(1, -210, 0, 10)
+statsLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+statsLabel.TextColor3 = Color3.new(1, 1, 1)
+statsLabel.Font = Enum.Font.SourceSans
+statsLabel.TextSize = 16
+statsLabel.Text = "FPS: ... | Ping: ..."
+statsLabel.ZIndex = 10
+statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+task.spawn(function()
+	local RunService = game:GetService("RunService")
+	local Stats = game:GetService("Stats")
+
+	local frameCount = 0
+	local elapsedTime = 0
+	local fps = 60
+
+	while true do
+		local dt = RunService.RenderStepped:Wait()
+		frameCount += 1
+		elapsedTime += dt
+
+		if elapsedTime >= 1 then
+			fps = frameCount
+			frameCount = 0
+			elapsedTime = 0
+		end
+
+		local ping = "..."
+		local success, performanceStats = pcall(function()
+			return Stats:FindFirstChild("PerformanceStats")
+		end)
+
+		if success and performanceStats then
+			local pingStat = performanceStats:FindFirstChild("Ping")
+			if pingStat then
+				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
+			end
+		end
+
+		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
 	end
 end)
