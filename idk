@@ -156,7 +156,7 @@ fpsBoostToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 fpsBoostToggle.TextColor3 = Color3.new(1, 1, 1)
 fpsBoostToggle.Font = Enum.Font.SourceSans
 fpsBoostToggle.TextSize = 18
-fpsBoostToggle.Text = "FPS Boost: OFF"
+fpsBoostToggle.Text = "no texture everything: OFF"
 fpsBoostToggle.ZIndex = 2
 
 local fpsBoostEnabled = false
