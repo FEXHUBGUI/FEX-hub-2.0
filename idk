@@ -1,5 +1,3 @@
--- CoreX Hub GUI Script with Tabs and Features
-
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -7,137 +5,443 @@ local rootPart = character:WaitForChild("HumanoidRootPart")
 
 -- GUI Setup
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "CoreXHub"
+screenGui.Name = "SpeedGUI"
 screenGui.ResetOnSpawn = false
 
--- Main Frame
+-- Main Frame (Menu)
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 300)
-frame.Position = UDim2.new(0.5, -150, 0.5, -150)
+frame.Size = UDim2.new(0, 250, 0, 320)
+frame.Position = UDim2.new(0.5, -125, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Visible = true
+frame.Active = true
+frame.Draggable = true
+frame.Visible = false -- starts hidden
 
--- Tabs Frame
-local tabFrame = Instance.new("Frame", frame)
-tabFrame.Size = UDim2.new(1, 0, 0, 30)
-tabFrame.Position = UDim2.new(0, 0, 0, 0)
-tabFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+-- Background Image
+local background = Instance.new("ImageLabel", frame)
+background.Size = UDim2.new(1, 0, 1, 0)
+background.Image = "rbxassetid://113208146688561"
+background.BackgroundTransparency = 1
+background.ImageTransparency = 0.3
+background.ZIndex = 0
 
--- Tab Buttons
-local tabNames = {"Player", "Visual", "Audio"}
-local tabButtons = {}
-local tabs = {}
+-- Title Bar
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+title.Text = ""
+title.TextTransparency = 1
+title.ZIndex = 1
 
-for i, name in ipairs(tabNames) do
-	local button = Instance.new("TextButton", tabFrame)
-	button.Size = UDim2.new(0, 80, 1, 0)
-	button.Position = UDim2.new(0, (i - 1) * 80, 0, 0)
-	button.Text = name
-	button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	button.TextColor3 = Color3.new(1, 1, 1)
-	button.Font = Enum.Font.SourceSansBold
-	button.TextSize = 16
-	tabButtons[name] = button
+-- Animated Title Text
+local animatedText = Instance.new("TextLabel", title)
+animatedText.Text = "CoreX Hub V1"
+animatedText.Size = UDim2.new(0, 200, 1, 0)
+animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
+animatedText.Position = UDim2.new(0.5, 0, 0.5, 0)
+animatedText.BackgroundTransparency = 1
+animatedText.TextColor3 = Color3.new(1, 1, 1)
+animatedText.Font = Enum.Font.SourceSansBold
+animatedText.TextSize = 20
+animatedText.ZIndex = 2
+
+-- Tab Buttons Container
+local tabContainer = Instance.new("Frame", frame)
+tabContainer.Size = UDim2.new(1, 0, 0, 30)
+tabContainer.Position = UDim2.new(0, 0, 0, 30)
+tabContainer.BackgroundTransparency = 1
+
+local function createTab(name, pos)
+	local btn = Instance.new("TextButton", tabContainer)
+	btn.Size = UDim2.new(0, 80, 1, 0)
+	btn.Position = UDim2.new(0, pos, 0, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 18
+	btn.Text = name
+	btn.ZIndex = 2
+	return btn
 end
 
--- Player Tab
+local playerTabBtn = createTab("Player", 0)
+local visualTabBtn = createTab("Visual", 80)
+local audioTabBtn = createTab("Audio", 160)
+
+-- Containers for tab contents
 local playerTab = Instance.new("Frame", frame)
-playerTab.Size = UDim2.new(1, 0, 1, -30)
-playerTab.Position = UDim2.new(0, 0, 0, 30)
+playerTab.Size = UDim2.new(1, 0, 1, -60)
+playerTab.Position = UDim2.new(0, 0, 0, 60)
 playerTab.BackgroundTransparency = 1
-tabs["Player"] = playerTab
+playerTab.Visible = false
 
--- Visual Tab
 local visualTab = Instance.new("Frame", frame)
-visualTab.Size = UDim2.new(1, 0, 1, -30)
-visualTab.Position = UDim2.new(0, 0, 0, 30)
+visualTab.Size = UDim2.new(1, 0, 1, -60)
+visualTab.Position = UDim2.new(0, 0, 0, 60)
 visualTab.BackgroundTransparency = 1
-tabs["Visual"] = visualTab
+visualTab.Visible = false
 
--- Audio Tab
 local audioTab = Instance.new("Frame", frame)
-audioTab.Size = UDim2.new(1, 0, 1, -30)
-audioTab.Position = UDim2.new(0, 0, 0, 30)
+audioTab.Size = UDim2.new(1, 0, 1, -60)
+audioTab.Position = UDim2.new(0, 0, 0, 60)
 audioTab.BackgroundTransparency = 1
-tabs["Audio"] = audioTab
+audioTab.Visible = false
 
--- UI Elements: Speed Slider
-local slider = Instance.new("TextButton")
-slider.Text = "Speed"
-slider.Size = UDim2.new(0, 100, 0, 30)
-slider.Position = UDim2.new(0, 25, 0, 10)
-slider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+-- Player Tab Buttons
+local slider = Instance.new("TextButton", playerTab)
+slider.Size = UDim2.new(0, 200, 0, 30)
+slider.Position = UDim2.new(0, 25, 0, 0)
+slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 slider.TextColor3 = Color3.new(1, 1, 1)
-slider.Parent = playerTab
+slider.Font = Enum.Font.SourceSans
+slider.TextSize = 18
+slider.Text = "Speed: 16"
+slider.ZIndex = 2
 
--- God Mode Toggle
-local godToggle = Instance.new("TextButton")
-godToggle.Text = "God Mode"
-godToggle.Size = UDim2.new(0, 100, 0, 30)
-godToggle.Position = UDim2.new(0, 25, 0, 50)
-godToggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+local godToggle = Instance.new("TextButton", playerTab)
+godToggle.Size = UDim2.new(0, 200, 0, 30)
+godToggle.Position = UDim2.new(0, 25, 0, 45)
+godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 godToggle.TextColor3 = Color3.new(1, 1, 1)
-godToggle.Parent = playerTab
+godToggle.Font = Enum.Font.SourceSans
+godToggle.TextSize = 18
+godToggle.Text = "God Mode: OFF"
+godToggle.ZIndex = 2
 
--- Helicopter Toggle
-local heliToggle = Instance.new("TextButton")
-heliToggle.Text = "Helicopter"
-heliToggle.Size = UDim2.new(0, 100, 0, 30)
+local heliToggle = Instance.new("TextButton", playerTab)
+heliToggle.Size = UDim2.new(0, 200, 0, 30)
 heliToggle.Position = UDim2.new(0, 25, 0, 90)
-heliToggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+heliToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 heliToggle.TextColor3 = Color3.new(1, 1, 1)
-heliToggle.Parent = playerTab
+heliToggle.Font = Enum.Font.SourceSans
+heliToggle.TextSize = 18
+heliToggle.Text = "Helicopter: OFF"
+heliToggle.ZIndex = 2
 
--- ESP Toggle
-local espToggle = Instance.new("TextButton")
-espToggle.Text = "Toggle ESP"
-espToggle.Size = UDim2.new(0, 100, 0, 30)
-espToggle.Position = UDim2.new(0, 25, 0, 10)
-espToggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+-- Visual Tab Buttons
+local espToggle = Instance.new("TextButton", visualTab)
+espToggle.Size = UDim2.new(0, 200, 0, 30)
+espToggle.Position = UDim2.new(0, 25, 0, 0)
+espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 espToggle.TextColor3 = Color3.new(1, 1, 1)
-espToggle.Parent = visualTab
+espToggle.Font = Enum.Font.SourceSans
+espToggle.TextSize = 18
+espToggle.Text = "ESP: OFF"
+espToggle.ZIndex = 2
 
--- Music Input
-local musicInput = Instance.new("TextBox")
-musicInput.PlaceholderText = "Enter Sound ID"
+-- Audio Tab Buttons and Input
+local musicSound = Instance.new("Sound", workspace)
+musicSound.Looped = true
+musicSound.Volume = 1
+local musicEnabled = false
+
+local musicInput = Instance.new("TextBox", audioTab)
 musicInput.Size = UDim2.new(0, 200, 0, 30)
-musicInput.Position = UDim2.new(0, 25, 0, 10)
-musicInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+musicInput.Position = UDim2.new(0, 25, 0, 0)
+musicInput.PlaceholderText = "Enter Sound ID"
+musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 musicInput.TextColor3 = Color3.new(1, 1, 1)
-musicInput.Parent = audioTab
+musicInput.Font = Enum.Font.SourceSans
+musicInput.TextSize = 18
+musicInput.Text = ""
+musicInput.ZIndex = 2
 
--- Play Music Button
-local playMusicButton = Instance.new("TextButton")
-playMusicButton.Text = "Play Music"
-playMusicButton.Size = UDim2.new(0, 100, 0, 30)
-playMusicButton.Position = UDim2.new(0, 25, 0, 50)
-playMusicButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+local playMusicButton = Instance.new("TextButton", audioTab)
+playMusicButton.Size = UDim2.new(0, 200, 0, 30)
+playMusicButton.Position = UDim2.new(0, 25, 0, 45)
+playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 playMusicButton.TextColor3 = Color3.new(1, 1, 1)
-playMusicButton.Parent = audioTab
+playMusicButton.Font = Enum.Font.SourceSans
+playMusicButton.TextSize = 18
+playMusicButton.Text = "Play Music"
+playMusicButton.ZIndex = 2
 
--- Music Toggle
-local musicToggle = Instance.new("TextButton")
-musicToggle.Text = "Music On/Off"
-musicToggle.Size = UDim2.new(0, 100, 0, 30)
+local musicToggle = Instance.new("TextButton", audioTab)
+musicToggle.Size = UDim2.new(0, 200, 0, 30)
 musicToggle.Position = UDim2.new(0, 25, 0, 90)
-musicToggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 musicToggle.TextColor3 = Color3.new(1, 1, 1)
-musicToggle.Parent = audioTab
+musicToggle.Font = Enum.Font.SourceSans
+musicToggle.TextSize = 18
+musicToggle.Text = "Music: OFF"
+musicToggle.ZIndex = 2
 
--- Tab Switching Logic
-local function switchTab(selected)
-	for name, content in pairs(tabs) do
-		content.Visible = (name == selected)
+-- Toggle Tabs Visibility
+local function hideAllTabs()
+	playerTab.Visible = false
+	visualTab.Visible = false
+	audioTab.Visible = false
+end
+
+playerTabBtn.MouseButton1Click:Connect(function()
+	if playerTab.Visible then
+		playerTab.Visible = false
+	else
+		hideAllTabs()
+		playerTab.Visible = true
+	end
+end)
+
+visualTabBtn.MouseButton1Click:Connect(function()
+	if visualTab.Visible then
+		visualTab.Visible = false
+	else
+		hideAllTabs()
+		visualTab.Visible = true
+	end
+end)
+
+audioTabBtn.MouseButton1Click:Connect(function()
+	if audioTab.Visible then
+		audioTab.Visible = false
+	else
+		hideAllTabs()
+		audioTab.Visible = true
+	end
+end)
+
+-- Toggle GUI Button on left middle side
+local toggleButton = Instance.new("TextButton", screenGui)
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(0, 10, 0.5, -15)
+toggleButton.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 16
+toggleButton.Text = "Toggle CoreX"
+toggleButton.ZIndex = 1000
+
+task.spawn(function()
+	while true do
+		toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
+		task.wait(0.03)
+	end
+end)
+
+toggleButton.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+	if not frame.Visible then
+		hideAllTabs()
+	end
+end)
+
+-- FPS & Ping Counter (left under toggle button)
+local statsLabel = Instance.new("TextLabel", screenGui)
+statsLabel.Size = UDim2.new(0, 120, 0, 20)
+statsLabel.Position = UDim2.new(0, 10, 0.5, 20)
+statsLabel.BackgroundTransparency = 1
+statsLabel.TextColor3 = Color3.fromHSV(0, 1, 1)
+statsLabel.Font = Enum.Font.SourceSansBold
+statsLabel.TextSize = 16
+statsLabel.Text = "FPS: ... | Ping: ..."
+statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+statsLabel.ZIndex = 1000
+
+task.spawn(function()
+	local RunService = game:GetService("RunService")
+	local Stats = game:GetService("Stats")
+	local frameCount = 0
+	local elapsedTime = 0
+	local fps = 60
+
+	while true do
+		local dt = RunService.RenderStepped:Wait()
+		frameCount += 1
+		elapsedTime += dt
+
+		if elapsedTime >= 1 then
+			fps = frameCount
+			frameCount = 0
+			elapsedTime = 0
+		end
+
+		local ping = "..."
+		local success, perfStats = pcall(function()
+			return Stats:FindFirstChild("PerformanceStats")
+		end)
+
+		if success and perfStats then
+			local pingStat = perfStats:FindFirstChild("Ping")
+			if pingStat then
+				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
+			end
+		end
+
+		local hue = (tick() % 5) / 5
+		statsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
+		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
+	end
+end)
+
+-- Speed logic
+local speeds = {16, 32, 50, 100}
+local index = 1
+slider.MouseButton1Click:Connect(function()
+	index += 1
+	if index > #speeds then index = 1 end
+	local speed = speeds[index]
+	slider.Text = "Speed: " .. speed
+	humanoid.WalkSpeed = speed
+end)
+
+-- ESP logic
+local espEnabled = false
+local highlights = {}
+
+local function createESP(targetPlayer)
+	if targetPlayer == player then return end
+	if highlights[targetPlayer] then return end
+	local char = targetPlayer.Character
+	if not char then return end
+
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "ESPHighlight"
+	highlight.Adornee = char
+	highlight.FillColor = Color3.fromRGB(255, 0, 0)
+	highlight.FillTransparency = 0.5
+	highlight.OutlineColor = Color3.new(1, 1, 1)
+	highlight.OutlineTransparency = 0
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = char
+
+	highlights[targetPlayer] = highlight
+end
+
+local function removeESP(targetPlayer)
+	if highlights[targetPlayer] then
+		highlights[targetPlayer]:Destroy()
+		highlights[targetPlayer] = nil
 	end
 end
 
--- Connect Tab Buttons
-for name, button in pairs(tabButtons) do
-	button.MouseButton1Click:Connect(function()
-		switchTab(name)
-	end)
+local function updateESP()
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		if espEnabled then
+			createESP(plr)
+		else
+			removeESP(plr)
+		end
+	end
 end
 
--- Set default tab
-switchTab("Player")
+game.Players.PlayerAdded:Connect(function(p)
+	p.CharacterAdded:Connect(function()
+		if espEnabled then
+			wait(1)
+			createESP(p)
+		end
+	end)
+end)
+
+game.Players.PlayerRemoving:Connect(function(p)
+	removeESP(p)
+end)
+
+espToggle.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+	updateESP()
+end)
+
+task.spawn(function()
+	while true do
+		if espEnabled then
+			updateESP()
+		end
+		task.wait(1)
+	end
+end)
+
+-- God Mode logic
+local godMode = false
+task.spawn(function()
+	while true do
+		if godMode then
+			pcall(function()
+				if humanoid and humanoid.Health < humanoid.MaxHealth then
+					humanoid.Health = humanoid.MaxHealth
+				end
+			end)
+		end
+		task.wait(0.1)
+	end
+end)
+
+godToggle.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
+end)
+
+-- Helicopter logic
+local helicopterEnabled = false
+local bodyVel = Instance.new("BodyVelocity")
+bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+bodyVel.Velocity = Vector3.new(0, 0, 0)
+
+local crawlAnim = Instance.new("Animation")
+crawlAnim.AnimationId = "rbxassetid://616006778"
+local crawlTrack = humanoid:LoadAnimation(crawlAnim)
+
+heliToggle.MouseButton1Click:Connect(function()
+	helicopterEnabled = not helicopterEnabled
+	heliToggle.Text = "Helicopter: " .. (helicopterEnabled and "ON" or "OFF")
+	if helicopterEnabled then
+		bodyVel.Parent = rootPart
+		bodyVel.Velocity = Vector3.new(0, 50, 0)
+		crawlTrack:Play()
+	else
+		bodyVel.Parent = nil
+		crawlTrack:Stop()
+	end
+end)
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	humanoid = char:WaitForChild("Humanoid")
+	rootPart = char:WaitForChild("HumanoidRootPart")
+
+	bodyVel = Instance.new("BodyVelocity")
+	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+	bodyVel.Velocity = Vector3.new(0, 0, 0)
+
+	crawlTrack = humanoid:LoadAnimation(crawlAnim)
+	humanoid.WalkSpeed = speeds[index]
+
+	if helicopterEnabled then
+		bodyVel.Parent = rootPart
+		bodyVel.Velocity = Vector3.new(0, 50, 0)
+		crawlTrack:Play()
+	end
+end)
+
+-- Music Toggle and Play
+musicToggle.MouseButton1Click:Connect(function()
+	musicEnabled = not musicEnabled
+	musicToggle.Text = "Music: " .. (musicEnabled and "ON" or "OFF")
+	if not musicEnabled then
+		musicSound:Stop()
+	end
+end)
+
+playMusicButton.MouseButton1Click:Connect(function()
+	local id = musicInput.Text:match("%d+")
+	if id then
+		musicSound.SoundId = "rbxassetid://" .. id
+		musicSound:Play()
+	else
+		warn("Invalid Sound ID")
+	end
+end)
+
+-- Title ripple + color animation
+task.spawn(function()
+	local t = 0
+	while true do
+		t += 0.05
+		local ripple = math.sin(t * 2) * 4
+		local hue = (tick() % 3) / 3
+		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
+		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
+		task.wait(0.016)
+	end
+end)
