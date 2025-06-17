@@ -10,8 +10,8 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 320)
-frame.Position = UDim2.new(0.5, -125, 0.5, -160)
+frame.Size = UDim2.new(0, 250, 0, 360)
+frame.Position = UDim2.new(0.5, -125, 0.5, -180)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
@@ -89,7 +89,7 @@ heliToggle.TextSize = 18
 heliToggle.Text = "Helicopter: OFF"
 heliToggle.ZIndex = 2
 
--- MUSIC SYSTEM
+-- Music System
 local musicSound = Instance.new("Sound", workspace)
 musicSound.Looped = true
 musicSound.Volume = 1
@@ -114,7 +114,7 @@ playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 playMusicButton.TextColor3 = Color3.new(1, 1, 1)
 playMusicButton.Font = Enum.Font.SourceSans
 playMusicButton.TextSize = 18
-playMusicButton.Text = "Play Music buggy"
+playMusicButton.Text = "Play Music"
 playMusicButton.Visible = false
 playMusicButton.ZIndex = 2
 
@@ -148,6 +148,87 @@ playMusicButton.MouseButton1Click:Connect(function()
 	end
 end)
 
+-- FPS Boost Button
+local fpsBoostToggle = Instance.new("TextButton", frame)
+fpsBoostToggle.Size = UDim2.new(0, 200, 0, 30)
+fpsBoostToggle.Position = UDim2.new(0, 25, 0, 325)
+fpsBoostToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+fpsBoostToggle.TextColor3 = Color3.new(1, 1, 1)
+fpsBoostToggle.Font = Enum.Font.SourceSans
+fpsBoostToggle.TextSize = 18
+fpsBoostToggle.Text = "FPS Boost: OFF"
+fpsBoostToggle.ZIndex = 2
+
+local fpsBoostEnabled = false
+local lighting = game:GetService("Lighting")
+local runService = game:GetService("RunService")
+
+local originalLightingSettings = {
+	ClockTime = lighting.ClockTime,
+	Brightness = lighting.Brightness,
+	GlobalShadows = lighting.GlobalShadows,
+	ShadowSoftness = lighting.ShadowSoftness,
+	Ambient = lighting.Ambient,
+	OutdoorAmbient = lighting.OutdoorAmbient,
+}
+
+fpsBoostToggle.MouseButton1Click:Connect(function()
+	fpsBoostEnabled = not fpsBoostEnabled
+	fpsBoostToggle.Text = "FPS Boost: " .. (fpsBoostEnabled and "ON" or "OFF")
+
+	if fpsBoostEnabled then
+		-- Apply FPS boost tweaks
+		lighting.ClockTime = 14
+		lighting.Brightness = 0
+		lighting.GlobalShadows = false
+		lighting.ShadowSoftness = 0
+		lighting.Ambient = Color3.new(0, 0, 0)
+		lighting.OutdoorAmbient = Color3.new(0, 0, 0)
+
+		-- Disable unnecessary effects if any
+		if lighting:FindFirstChild("Bloom") then
+			lighting.Bloom.Enabled = false
+		end
+		if lighting:FindFirstChild("ColorCorrection") then
+			lighting.ColorCorrection.Enabled = false
+		end
+		if lighting:FindFirstChild("SunRays") then
+			lighting.SunRays.Enabled = false
+		end
+		if lighting:FindFirstChild("Blur") then
+			lighting.Blur.Enabled = false
+		end
+		if lighting:FindFirstChild("DepthOfField") then
+			lighting.DepthOfField.Enabled = false
+		end
+	else
+		-- Restore original lighting settings
+		lighting.ClockTime = originalLightingSettings.ClockTime
+		lighting.Brightness = originalLightingSettings.Brightness
+		lighting.GlobalShadows = originalLightingSettings.GlobalShadows
+		lighting.ShadowSoftness = originalLightingSettings.ShadowSoftness
+		lighting.Ambient = originalLightingSettings.Ambient
+		lighting.OutdoorAmbient = originalLightingSettings.OutdoorAmbient
+
+		-- Re-enable effects if they exist
+		if lighting:FindFirstChild("Bloom") then
+			lighting.Bloom.Enabled = true
+		end
+		if lighting:FindFirstChild("ColorCorrection") then
+			lighting.ColorCorrection.Enabled = true
+		end
+		if lighting:FindFirstChild("SunRays") then
+			lighting.SunRays.Enabled = true
+		end
+		if lighting:FindFirstChild("Blur") then
+			lighting.Blur.Enabled = true
+		end
+		if lighting:FindFirstChild("DepthOfField") then
+			lighting.DepthOfField.Enabled = true
+		end
+	end
+end)
+
 -- Toggle GUI Button
 local toggleButton = Instance.new("TextButton", screenGui)
 toggleButton.Size = UDim2.new(0, 120, 0, 30)
@@ -165,6 +246,10 @@ task.spawn(function()
 	end
 end)
 
+toggleButton.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+end)
+
 -- Speed logic
 local speeds = {16, 32, 50, 100}
 local index = 1
@@ -174,10 +259,6 @@ slider.MouseButton1Click:Connect(function()
 	local speed = speeds[index]
 	slider.Text = "Speed: " .. speed
 	humanoid.WalkSpeed = speed
-end)
-
-toggleButton.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
 end)
 
 -- Rainbow ESP logic
