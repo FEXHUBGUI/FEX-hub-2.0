@@ -15,7 +15,7 @@ frame.Position = UDim2.new(0.5, -125, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
 frame.Draggable = true
-frame.Visible = false -- Hide initially
+frame.Visible = true
 
 -- Background Image
 local background = Instance.new("ImageLabel", frame)
@@ -89,7 +89,7 @@ heliToggle.TextSize = 18
 heliToggle.Text = "Helicopter: OFF"
 heliToggle.ZIndex = 2
 
--- MUSIC SYSTEM (NEW)
+-- MUSIC SYSTEM
 local musicSound = Instance.new("Sound", workspace)
 musicSound.Looped = true
 musicSound.Volume = 1
@@ -158,7 +158,6 @@ toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 toggleButton.Text = "Toggle CoreX"
 
--- RGB toggle animation
 task.spawn(function()
 	while true do
 		toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
@@ -188,7 +187,6 @@ local highlights = {}
 local function createESP(targetPlayer)
 	if targetPlayer == player then return end
 	if highlights[targetPlayer] then return end
-
 	local char = targetPlayer.Character
 	if not char then return end
 
@@ -309,37 +307,56 @@ task.spawn(function()
 		t += 0.05
 		local ripple = math.sin(t * 2) * 4
 		local hue = (tick() % 3) / 3
-
 		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
 		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
 		task.wait(0.016)
 	end
 end)
 
--- WELCOME MESSAGE SETUP
-local TweenService = game:GetService("TweenService")
+-- 🆕 FPS & Ping Counter
+local statsLabel = Instance.new("TextLabel", screenGui)
+statsLabel.Size = UDim2.new(0, 200, 0, 20)
+statsLabel.Position = UDim2.new(0, 10, 0, 45) -- Near health bar
+statsLabel.BackgroundTransparency = 1
+statsLabel.TextColor3 = Color3.new(1, 1, 1)
+statsLabel.Font = Enum.Font.SourceSansBold
+statsLabel.TextSize = 16
+statsLabel.Text = "FPS: ... | Ping: ..."
+statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+statsLabel.ZIndex = 1000
 
-local welcomeLabel = Instance.new("TextLabel", screenGui)
-welcomeLabel.Size = UDim2.new(1, 0, 1, 0)
-welcomeLabel.BackgroundColor3 = Color3.new(0, 0, 0)
-welcomeLabel.BackgroundTransparency = 0.5
-welcomeLabel.Text = "Welcome to CoreX Hub"
-welcomeLabel.TextColor3 = Color3.new(1, 1, 1)
-welcomeLabel.Font = Enum.Font.SourceSansBold
-welcomeLabel.TextSize = 36
-welcomeLabel.TextScaled = true
-welcomeLabel.TextWrapped = true
-welcomeLabel.ZIndex = 10000
-welcomeLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-welcomeLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+task.spawn(function()
+	local RunService = game:GetService("RunService")
+	local Stats = game:GetService("Stats")
+	local frameCount = 0
+	local elapsedTime = 0
+	local fps = 60
 
-local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	while true do
+		local dt = RunService.RenderStepped:Wait()
+		frameCount += 1
+		elapsedTime += dt
 
-local fadeTween = TweenService:Create(welcomeLabel, tweenInfo, {BackgroundTransparency = 1, TextTransparency = 1})
+		if elapsedTime >= 1 then
+			fps = frameCount
+			frameCount = 0
+			elapsedTime = 0
+		end
 
-fadeTween:Play()
+		local ping = "..."
+		local success, perfStats = pcall(function()
+			return Stats:FindFirstChild("PerformanceStats")
+		end)
 
-fadeTween.Completed:Connect(function()
-    welcomeLabel:Destroy()
-    frame.Visible = true
+		if success and perfStats then
+			local pingStat = perfStats:FindFirstChild("Ping")
+			if pingStat then
+				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
+			end
+		end
+
+		local hue = (tick() % 5) / 5
+		statsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
+		statsLabel.Text = "FPS: " .. fps .. " | Ping: " .. ping
+	end
 end)
