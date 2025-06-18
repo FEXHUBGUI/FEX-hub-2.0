@@ -10,7 +10,7 @@ screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 350)
+frame.Size = UDim2.new(0, 250, 0, 200)
 frame.Position = UDim2.new(0.5, -125, 0.5, -180)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
@@ -55,47 +55,45 @@ animatedText.ZIndex = 2
 
 -- Speed Button
 local slider = Instance.new("TextButton", frame)
-slider.Size = UDim2.new(0, 50, 0, 50)
+slider.Size = UDim2.new(0, 200, 0, 30)
 slider.Position = UDim2.new(0, 25, 0, 45)
 slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 slider.TextColor3 = Color3.new(1, 1, 1)
 slider.Font = Enum.Font.SourceSans
-slider.TextSize = 10
+slider.TextSize = 18
 slider.Text = "Speed: 16"
 slider.ZIndex = 2
 
-
 -- ESP Button
 local espToggle = Instance.new("TextButton", frame)
-espToggle.Size = UDim2.new(0, 50, 0, 50)
-espToggle.Position = UDim2.new(0, 25, 0, 45)
+espToggle.Size = UDim2.new(0, 200, 0, 30)
+espToggle.Position = UDim2.new(0, 25, 0, 85)
 espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 espToggle.TextColor3 = Color3.new(1, 1, 1)
 espToggle.Font = Enum.Font.SourceSans
-espToggle.TextSize = 10
+espToggle.TextSize = 18
 espToggle.Text = "ESP: OFF"
 espToggle.ZIndex = 2
 
-
 -- God Mode Button
 local godToggle = Instance.new("TextButton", frame)
-godToggle.Size = UDim2.new(0, 50, 0, 50)
+godToggle.Size = UDim2.new(0, 200, 0, 30)
 godToggle.Position = UDim2.new(0, 25, 0, 125)
 godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 godToggle.TextColor3 = Color3.new(1, 1, 1)
 godToggle.Font = Enum.Font.SourceSans
-godToggle.TextSize = 10
-godToggle.Text = "God Mode: OFF
+godToggle.TextSize = 18
+godToggle.Text = "God Mode: OFF"
 godToggle.ZIndex = 2
 
 -- Helicopter Button
 local heliToggle = Instance.new("TextButton", frame)
-heliToggle.Size = UDim2.new(0, 50, 0, 50)
+heliToggle.Size = UDim2.new(0, 200, 0, 30)
 heliToggle.Position = UDim2.new(0, 25, 0, 165)
 heliToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 heliToggle.TextColor3 = Color3.new(1, 1, 1)
 heliToggle.Font = Enum.Font.SourceSans
-heliToggle.TextSize = 10
+heliToggle.TextSize = 18
 heliToggle.Text = "Helicopter: OFF"
 heliToggle.ZIndex = 2
 
@@ -106,7 +104,7 @@ musicSound.Volume = 1
 local musicEnabled = false
 
 local musicInput = Instance.new("TextBox", frame)
-musicInput.Size = UDim2.new(0, 50, 0, 50)
+musicInput.Size = UDim2.new(0, 200, 0, 30)
 musicInput.Position = UDim2.new(0, 25, 0, 205)
 musicInput.PlaceholderText = "Enter Sound ID"
 musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -118,23 +116,23 @@ musicInput.Visible = false
 musicInput.ZIndex = 2
 
 local playMusicButton = Instance.new("TextButton", frame)
-playMusicButton.Size = UDim2.new(0, 50, 0, 50)
+playMusicButton.Size = UDim2.new(0, 200, 0, 30)
 playMusicButton.Position = UDim2.new(0, 25, 0, 245)
 playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 playMusicButton.TextColor3 = Color3.new(1, 1, 1)
 playMusicButton.Font = Enum.Font.SourceSans
-playMusicButton.TextSize = 10
+playMusicButton.TextSize = 18
 playMusicButton.Text = "Play Music"
 playMusicButton.Visible = false
 playMusicButton.ZIndex = 2
 
 local musicToggle = Instance.new("TextButton", frame)
-musicToggle.Size = UDim2.new(0, 50, 0, 50)
+musicToggle.Size = UDim2.new(0, 200, 0, 30)
 musicToggle.Position = UDim2.new(0, 25, 0, 285)
 musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 musicToggle.TextColor3 = Color3.new(1, 1, 1)
 musicToggle.Font = Enum.Font.SourceSans
-musicToggle.TextSize = 10
+musicToggle.TextSize = 18
 musicToggle.Text = "Music: OFF"
 musicToggle.ZIndex = 2
 
@@ -160,12 +158,12 @@ end)
 
 -- FPS Boost Button
 local fpsBoostToggle = Instance.new("TextButton", frame)
-fpsBoostToggle.Size = UDim2.new(0, 50, 0, 50)
-fpsBoostToggle.Position = UDim2.new(0, 80, 0, 45)
+fpsBoostToggle.Size = UDim2.new(0, 200, 0, 30)
+fpsBoostToggle.Position = UDim2.new(0, 25, 0, 325)
 fpsBoostToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 fpsBoostToggle.TextColor3 = Color3.new(1, 1, 1)
 fpsBoostToggle.Font = Enum.Font.SourceSans
-fpsBoostToggle.TextSize = 10
+fpsBoostToggle.TextSize = 18
 fpsBoostToggle.Text = "FPS Booster: OFF"
 fpsBoostToggle.ZIndex = 2
 
