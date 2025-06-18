@@ -64,16 +64,29 @@ slider.TextSize = 10
 slider.Text = "Speed: 16"
 slider.ZIndex = 2
 
+
 -- ESP Button
 local espToggle = Instance.new("TextButton", frame)
 espToggle.Size = UDim2.new(0, 50, 0, 50)
-espToggle.Position = UDim2.new(0, 25, 0, 85)
+espToggle.Position = UDim2.new(0, 45, 0, 80)
 espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 espToggle.TextColor3 = Color3.new(1, 1, 1)
 espToggle.Font = Enum.Font.SourceSans
 espToggle.TextSize = 10
 espToggle.Text = "ESP: OFF"
 espToggle.ZIndex = 2
+
+
+-- Noclip Button
+local noclipBtn = Instance.new("TextButton", frame)
+noclipBtn.Size = UDim2.new(0, 50, 0, 50)
+noclipBtn.Position = UDim2.new(0, 80, 0, 45)
+noclipBtn.Text = "Noclip: OFF"
+noclipBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 255)
+noclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipBtn.TextScaled = true
+noclipBtn.BorderSizePixel = 0
+noclipBtn.AutoButtonColor = true
 
 -- God Mode Button
 local godToggle = Instance.new("TextButton", frame)
