@@ -1,10 +1,17 @@
 --// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera + ESP + Settings + Search Tabs
 
+-- Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
 -- Create ScreenGui
 local gui = Instance.new("ScreenGui")
 gui.Name = "UniversalUI"
 gui.ResetOnSpawn = false
-gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
@@ -29,7 +36,7 @@ searchBar.TextColor3 = Color3.fromRGB(255,255,255)
 searchBar.BackgroundColor3 = Color3.fromRGB(40,40,40)
 Instance.new("UICorner", searchBar).CornerRadius = UDim.new(0,6)
 
--- Tab Holder (scrollable)
+-- Tab Holder
 local tabHolder = Instance.new("ScrollingFrame", mainFrame)
 tabHolder.Size = UDim2.new(1, -20, 0, 40)
 tabHolder.Position = UDim2.new(0, 10, 0, 35)
@@ -37,19 +44,18 @@ tabHolder.CanvasSize = UDim2.new(0,0,0,0)
 tabHolder.ScrollBarThickness = 4
 tabHolder.AutomaticCanvasSize = Enum.AutomaticSize.X
 tabHolder.BackgroundTransparency = 1
-
 local tabLayout = Instance.new("UIListLayout", tabHolder)
 tabLayout.FillDirection = Enum.FillDirection.Horizontal
 tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 tabLayout.Padding = UDim.new(0, 8)
 
--- Container for tab contents
+-- Content Container
 local contentFrame = Instance.new("Frame", mainFrame)
 contentFrame.Size = UDim2.new(1, -20, 1, -80)
 contentFrame.Position = UDim2.new(0, 10, 0, 80)
 contentFrame.BackgroundTransparency = 1
 
--- Function to create tabs
+-- Create Tabs
 local Tabs = {}
 local function createTab(name)
     local button = Instance.new("TextButton")
@@ -68,7 +74,6 @@ local function createTab(name)
     tabFrame.BackgroundTransparency = 1
     tabFrame.CanvasSize = UDim2.new(0,0,0,0)
     tabFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
     local layout = Instance.new("UIListLayout", tabFrame)
     layout.Padding = UDim.new(0,6)
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -85,33 +90,29 @@ local function createTab(name)
 
     local tabData = {Button = button, Frame = tabFrame, Name = name}
     table.insert(Tabs, tabData)
-    if #Tabs == 1 then -- first tab default open
+    if #Tabs == 1 then
         tabFrame.Visible = true
         button.BackgroundColor3 = Color3.fromRGB(70,70,70)
     end
     return tabFrame
 end
 
--- Search filter
+-- Search Filter
 searchBar:GetPropertyChangedSignal("Text"):Connect(function()
     local query = string.lower(searchBar.Text)
     for _,tab in ipairs(Tabs) do
-        if query == "" or string.find(string.lower(tab.Name), query) then
-            tab.Button.Visible = true
-        else
-            tab.Button.Visible = false
-        end
+        tab.Button.Visible = query == "" or string.find(string.lower(tab.Name), query)
     end
 end)
 
---// Tabs
+-- Tabs
 local mainTab = createTab("Main")
 local playerTab = createTab("Player")
 local visualTab = createTab("Visuals")
 local settingsTab = createTab("Settings")
 local funTab = createTab("Fun")
 
---// Buttons Utility
+-- Button Utility
 local function createButton(tab, text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9,0,0,30)
@@ -135,11 +136,9 @@ end
 
 --// MAIN TAB
 createButton(mainTab,"Rejoin",function()
-    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
 end)
 createButton(mainTab,"Server Hop",function()
-    local HttpService = game:GetService("HttpService")
-    local TeleportService = game:GetService("TeleportService")
     local servers = HttpService:JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
     for _,s in pairs(servers.data) do
         if s.playing < s.maxPlayers then
@@ -154,9 +153,9 @@ local noclip = false
 createButton(playerTab,"Toggle Noclip",function()
     noclip = not noclip
 end)
-game:GetService("RunService").Stepped:Connect(function()
-    if noclip then
-        for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+RunService.Stepped:Connect(function()
+    if noclip and player.Character then
+        for _,v in pairs(player.Character:GetDescendants()) do
             if v:IsA("BasePart") and v.CanCollide then
                 v.CanCollide = false
             end
@@ -164,15 +163,13 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Lock-On Camera (BODY + HEAD)
+-- Lock-On Camera
 local lockOnEnabled = false
 local lockOnHead = false
 local camera = workspace.CurrentCamera
-local player = game.Players.LocalPlayer
-
 local function getClosestPlayer()
     local closest, dist = nil, math.huge
-    for _,plr in pairs(game.Players:GetPlayers()) do
+    for _,plr in pairs(Players:GetPlayers()) do
         if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             local mag = (plr.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
             if mag < dist then
@@ -195,7 +192,7 @@ createButton(playerTab,"Lock-On (HEAD)",function(btn)
     btn.Text = lockOnEnabled and "Lock-On (HEAD ON)" or "Lock-On (HEAD OFF)"
 end)
 
-game:GetService("RunService").RenderStepped:Connect(function()
+RunService.RenderStepped:Connect(function()
     if lockOnEnabled then
         local closest = getClosestPlayer()
         if closest and closest.Character then
@@ -209,13 +206,13 @@ game:GetService("RunService").RenderStepped:Connect(function()
 end)
 
 createButton(playerTab,"WalkSpeed +",function()
-    game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed += 5
+    player.Character:WaitForChild("Humanoid").WalkSpeed += 5
 end)
 createButton(playerTab,"JumpPower +",function()
-    game.Players.LocalPlayer.Character:WaitForChild("Humanoid").JumpPower += 10
+    player.Character:WaitForChild("Humanoid").JumpPower += 10
 end)
 
---// VISUAL TAB (ESP)
+--// VISUAL TAB (ESP + Crosshair)
 local espEnabled = false
 local function applyESP(plr)
     if plr ~= player and plr.Character then
@@ -248,7 +245,7 @@ end
 createButton(visualTab,"Toggle ESP",function()
     espEnabled = not espEnabled
     if not espEnabled then
-        for _,plr in pairs(game.Players:GetPlayers()) do
+        for _,plr in pairs(Players:GetPlayers()) do
             if plr.Character then
                 if plr.Character:FindFirstChild("ESP_Highlight") then plr.Character.ESP_Highlight:Destroy() end
                 if plr.Character:FindFirstChild("Head") and plr.Character.Head:FindFirstChild("ESP_Tag") then
@@ -259,23 +256,21 @@ createButton(visualTab,"Toggle ESP",function()
     end
 end)
 
--- ESP auto refresh
-game:GetService("RunService").Heartbeat:Connect(function()
+RunService.Heartbeat:Connect(function()
     if espEnabled then
-        for _,plr in pairs(game.Players:GetPlayers()) do
+        for _,plr in pairs(Players:GetPlayers()) do
             applyESP(plr)
         end
     end
 end)
 
---// CROSSHAIR
+-- Crosshair
 local crosshairV = Instance.new("Frame", gui)
 crosshairV.Size = UDim2.new(0, 2, 0, 20)
 crosshairV.AnchorPoint = Vector2.new(0.5,0.5)
 crosshairV.Position = UDim2.new(0.5,0,0.5,0)
 crosshairV.BackgroundColor3 = Color3.new(1,1,1)
 crosshairV.Visible = false
-
 local crosshairH = Instance.new("Frame", gui)
 crosshairH.Size = UDim2.new(0, 20, 0, 2)
 crosshairH.AnchorPoint = Vector2.new(0.5,0.5)
@@ -289,44 +284,74 @@ createButton(visualTab,"Toggle Crosshair",function()
     crosshairH.Visible = state
 end)
 
--- Crosshair color buttons
 for _, colorName in ipairs({"Rainbow","Red","Green","Blue"}) do
     createButton(settingsTab,"Crosshair Color: "..colorName,function()
         if colorName == "Rainbow" then
             RunService.RenderStepped:Connect(function()
                 if crosshairV.Visible then
                     local t = tick() * 2
-                    local r = (math.sin(t) + 1)/2
-                    local g = (math.sin(t + 2) + 1)/2
-                    local b = (math.sin(t + 4) + 1)/2
-                    crosshairV.BackgroundColor3 = Color3.new(r,g,b)
-                    crosshairH.BackgroundColor3 = Color3.new(r,g,b)
+                    crosshairV.BackgroundColor3 = Color3.fromHSV(t % 1,1,1)
+                    crosshairH.BackgroundColor3 = Color3.fromHSV(t % 1,1,1)
                 end
             end)
         else
-            local col = {
-                Red = Color3.new(1,0,0),
-                Green = Color3.new(0,1,0),
-                Blue = Color3.new(0,0,1)
-            }
+            local col = {Red=Color3.new(1,0,0), Green=Color3.new(0,1,0), Blue=Color3.new(0,0,1)}
             crosshairV.BackgroundColor3 = col[colorName]
             crosshairH.BackgroundColor3 = col[colorName]
         end
     end)
 end
 
---// SETTINGS TAB
+--// SETTINGS TAB ADDITIONS
+-- Rainbow Background
 createButton(settingsTab,"Rainbow Background",function()
     while task.wait(0.1) do
         mainFrame.BackgroundColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
         if not settingsTab.Visible then break end
     end
 end)
+-- Invisible Background
 createButton(settingsTab,"Invisible Background",function()
     mainFrame.BackgroundTransparency = (mainFrame.BackgroundTransparency == 0) and 1 or 0
 end)
+-- Button Colors
+local buttonColorPresets = {Default=Color3.fromRGB(50,50,50), Dark=Color3.fromRGB(30,30,30), Light=Color3.fromRGB(200,200,200), Blue=Color3.fromRGB(50,100,200)}
+for preset, color in pairs(buttonColorPresets) do
+    createButton(settingsTab,"Button Color: "..preset,function()
+        for _,tab in ipairs(Tabs) do
+            for _,child in ipairs(tab.Frame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.BackgroundColor3 = color
+                end
+            end
+        end
+    end)
+end
+-- Font Selection
+local fonts = {Gotham=Enum.Font.Gotham, Arial=Enum.Font.Arial, SourceSans=Enum.Font.SourceSans, Code=Enum.Font.Code}
+for fontName, fontEnum in pairs(fonts) do
+    createButton(settingsTab,"Font: "..fontName,function()
+        for _,tab in ipairs(Tabs) do
+            for _,child in ipairs(tab.Frame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.Font = fontEnum
+                end
+            end
+        end
+        searchBar.Font = fontEnum
+    end)
+end
+-- Save Settings
+local settingsModule = game.ReplicatedStorage:FindFirstChild("GUISettings") or Instance.new("ModuleScript", game.ReplicatedStorage)
+settingsModule.Name = "GUISettings"
+settingsModule.Source = "return {}"
+createButton(settingsTab,"Save Settings",function()
+    local settings = {MainBG=mainFrame.BackgroundColor3, ButtonColor=buttonColorPresets.Default, Font=searchBar.Font.Name}
+    settingsModule.Source = "return "..HttpService:JSONEncode(settings)
+    print("Settings Saved!")
+end)
 
---// FUN TAB (example)
+--// FUN TAB
 createButton(funTab,"Spin Character",function()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
