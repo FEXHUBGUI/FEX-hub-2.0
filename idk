@@ -1,4 +1,4 @@
---// Universal GUI Script vGOATED
+--// Universal GUI Script vGOATED (Lock-On Camera Version)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -132,70 +132,59 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- Fly system (your new one)
-local flying = false
-local flySpeed = 50
-local flyMaxSpeed = 100
-local bodyVelocity = nil
-local bodyGyro = nil
-
-local function startFlying()
-	if flying then return end
-	flying = true
-	humanoid.PlatformStand = true
-	bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-	bodyVelocity.Velocity = Vector3.new(0,0,0)
-	bodyVelocity.Parent = rootPart
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-	bodyGyro.CFrame = rootPart.CFrame
-	bodyGyro.Parent = rootPart
-end
-
-local function stopFlying()
-	if not flying then return end
-	flying = false
-	humanoid.PlatformStand = false
-	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity=nil end
-	if bodyGyro then bodyGyro:Destroy() bodyGyro=nil end
-end
-
-createButton(playerTab,"Toggle Fly (F)",toggleFlying)
-UserInputService.InputBegan:Connect(function(input,gp)
-	if not gp and input.KeyCode==Enum.KeyCode.F then toggleFlying() end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if flying and bodyVelocity and bodyGyro then
-		local cam = workspace.CurrentCamera
-		local moveDir = Vector3.new()
-		if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir+=cam.CFrame.LookVector end
-		if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir-=cam.CFrame.LookVector end
-		if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir-=cam.CFrame.RightVector end
-		if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir+=cam.CFrame.RightVector end
-		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir+=Vector3.new(0,1,0) end
-		if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir-=Vector3.new(0,1,0) end
-		if moveDir.Magnitude>0 then moveDir=moveDir.Unit*flySpeed end
-		bodyVelocity.Velocity=moveDir
-		bodyGyro.CFrame=cam.CFrame
-	end
-end)
-
-player.CharacterAdded:Connect(function(newChar)
-	character=newChar
-	humanoid=newChar:WaitForChild("Humanoid")
-	rootPart=newChar:WaitForChild("HumanoidRootPart")
-	if flying then startFlying() end
-end)
-
 -- WalkSpeed & JumpPower
 createButton(playerTab,"WalkSpeed +",function() humanoid.WalkSpeed+=5 end)
 createButton(playerTab,"JumpPower +",function() humanoid.JumpPower+=10 end)
 
+--// LOCK-ON CAMERA
+local lockOn = false
+local lockTarget = nil
+local lockKey = Enum.KeyCode.L -- toggle key
+
+local function getClosestPlayer()
+	local closest = nil
+	local shortestDist = math.huge
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr~=player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local dist = (plr.Character.HumanoidRootPart.Position - rootPart.Position).Magnitude
+			if dist < shortestDist then
+				shortestDist = dist
+				closest = plr
+			end
+		end
+	end
+	return closest
+end
+
+local function toggleLockOn()
+	lockOn = not lockOn
+	if lockOn then
+		lockTarget = getClosestPlayer()
+	else
+		lockTarget = nil
+	end
+end
+
+UserInputService.InputBegan:Connect(function(input,gp)
+	if not gp and input.KeyCode == lockKey then toggleLockOn() end
+end)
+
+createButton(playerTab,"Toggle Lock-On Camera (L)",toggleLockOn)
+
+RunService.RenderStepped:Connect(function()
+	if lockOn and lockTarget and lockTarget.Character and lockTarget.Character:FindFirstChild("HumanoidRootPart") then
+		local cam = workspace.CurrentCamera
+		local targetPos = lockTarget.Character.HumanoidRootPart.Position + Vector3.new(0,2,0)
+		local camPos = cam.CFrame.Position
+		local direction = (targetPos - camPos).Unit
+		cam.CFrame = CFrame.new(camPos, camPos + direction)
+	else
+		lockTarget = nil
+	end
+end)
+
 --// VISUALS TAB (ESP with rainbow + hover glow)
 local espEnabled=false
-local rainbowESP=false
 createButton(visualTab,"Toggle ESP",function()
 	espEnabled=not espEnabled
 	for _,plr in pairs(Players:GetPlayers()) do
@@ -232,27 +221,26 @@ RunService.RenderStepped:Connect(function()
 		for _,plr in pairs(Players:GetPlayers()) do
 			if plr~=player and plr.Character then
 				local h = plr.Character:FindFirstChild("ESP_Highlight")
-				if h and rainbowESP then
-					local hsv=tick()%5/5
-					h.FillColor=Color3.fromHSV(hsv,1,1)
+				if h then
+					h.FillColor = Color3.fromHSV(tick()%5/5,1,1)
 				end
 			end
 		end
 	end
 end)
 
--- Settings Tab (Colors)
-local bgSolid = Color3.fromRGB(25,25,25)
-local btnSolid = Color3.fromRGB(50,50,50)
+--// SETTINGS TAB
 createButton(settingsTab,"Toggle Rainbow BG",function()
 	RunService.RenderStepped:Connect(function()
-		local hsv= tick()%10/10
-		mainFrame.BackgroundColor3=Color3.fromHSV(hsv,1,1)
+		mainFrame.BackgroundColor3 = Color3.fromHSV(tick()%10/10,1,1)
 	end)
 end)
 
-createButton(settingsTab,"Toggle Transparent BG",function() mainFrame.BackgroundTransparency = mainFrame.BackgroundTransparency==0 and 0.8 or 0 end)
-createButton(settingsTab,"Change Buttons Color",function()
+createButton(settingsTab,"Toggle Transparent BG",function()
+	mainFrame.BackgroundTransparency = mainFrame.BackgroundTransparency==0 and 0.8 or 0
+end)
+
+createButton(settingsTab,"Randomize Buttons Color",function()
 	for _,tab in pairs(Tabs) do
 		tab.Button.BackgroundColor3=Color3.fromRGB(math.random(0,255),math.random(0,255),math.random(0,255))
 	end
