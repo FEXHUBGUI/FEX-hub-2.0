@@ -268,6 +268,53 @@ game:GetService("RunService").Heartbeat:Connect(function()
     end
 end)
 
+--// CROSSHAIR
+local crosshairV = Instance.new("Frame", gui)
+crosshairV.Size = UDim2.new(0, 2, 0, 20)
+crosshairV.AnchorPoint = Vector2.new(0.5,0.5)
+crosshairV.Position = UDim2.new(0.5,0,0.5,0)
+crosshairV.BackgroundColor3 = Color3.new(1,1,1)
+crosshairV.Visible = false
+
+local crosshairH = Instance.new("Frame", gui)
+crosshairH.Size = UDim2.new(0, 20, 0, 2)
+crosshairH.AnchorPoint = Vector2.new(0.5,0.5)
+crosshairH.Position = UDim2.new(0.5,0,0.5,0)
+crosshairH.BackgroundColor3 = Color3.new(1,1,1)
+crosshairH.Visible = false
+
+createButton(visualTab,"Toggle Crosshair",function()
+    local state = not crosshairV.Visible
+    crosshairV.Visible = state
+    crosshairH.Visible = state
+end)
+
+-- Crosshair color buttons
+for _, colorName in ipairs({"Rainbow","Red","Green","Blue"}) do
+    createButton(settingsTab,"Crosshair Color: "..colorName,function()
+        if colorName == "Rainbow" then
+            RunService.RenderStepped:Connect(function()
+                if crosshairV.Visible then
+                    local t = tick() * 2
+                    local r = (math.sin(t) + 1)/2
+                    local g = (math.sin(t + 2) + 1)/2
+                    local b = (math.sin(t + 4) + 1)/2
+                    crosshairV.BackgroundColor3 = Color3.new(r,g,b)
+                    crosshairH.BackgroundColor3 = Color3.new(r,g,b)
+                end
+            end)
+        else
+            local col = {
+                Red = Color3.new(1,0,0),
+                Green = Color3.new(0,1,0),
+                Blue = Color3.new(0,0,1)
+            }
+            crosshairV.BackgroundColor3 = col[colorName]
+            crosshairH.BackgroundColor3 = col[colorName]
+        end
+    end)
+end
+
 --// SETTINGS TAB
 createButton(settingsTab,"Rainbow Background",function()
     while task.wait(0.1) do
