@@ -1,4 +1,4 @@
---// Universal GUI Script vGOATED (Lock-On Camera Version)
+--// Universal GUI Script vGOATED (Lock-On Auto + Persistent Colors)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -67,10 +67,14 @@ local function createTab(name)
     button.MouseButton1Click:Connect(function()
         for _,t in pairs(Tabs) do
             t.Frame.Visible = false
-            t.Button.BackgroundColor3 = Color3.fromRGB(40,40,40)
+            if not t.CustomColor then
+                t.Button.BackgroundColor3 = Color3.fromRGB(40,40,40)
+            end
         end
         tabFrame.Visible = true
-        button.BackgroundColor3 = Color3.fromRGB(70,70,70)
+        if not button.CustomColor then
+            button.BackgroundColor3 = Color3.fromRGB(70,70,70)
+        end
     end)
 
     local tabData = {Button = button, Frame = tabFrame}
@@ -100,7 +104,11 @@ local function createButton(tab,text,callback)
     btn.Parent = tab
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
     btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(70,70,70) end)
-    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(50,50,50) end)
+    btn.MouseLeave:Connect(function()
+        if not btn.CustomColor then
+            btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+        end
+    end)
     btn.MouseButton1Click:Connect(callback)
 end
 
@@ -132,14 +140,12 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- WalkSpeed & JumpPower
 createButton(playerTab,"WalkSpeed +",function() humanoid.WalkSpeed+=5 end)
 createButton(playerTab,"JumpPower +",function() humanoid.JumpPower+=10 end)
 
---// LOCK-ON CAMERA
+--// LOCK-ON CAMERA (Auto Update)
 local lockOn = false
-local lockTarget = nil
-local lockKey = Enum.KeyCode.L -- toggle key
+local lockKey = Enum.KeyCode.L
 
 local function getClosestPlayer()
 	local closest = nil
@@ -158,11 +164,6 @@ end
 
 local function toggleLockOn()
 	lockOn = not lockOn
-	if lockOn then
-		lockTarget = getClosestPlayer()
-	else
-		lockTarget = nil
-	end
 end
 
 UserInputService.InputBegan:Connect(function(input,gp)
@@ -172,18 +173,19 @@ end)
 createButton(playerTab,"Toggle Lock-On Camera (L)",toggleLockOn)
 
 RunService.RenderStepped:Connect(function()
-	if lockOn and lockTarget and lockTarget.Character and lockTarget.Character:FindFirstChild("HumanoidRootPart") then
+	if lockOn then
 		local cam = workspace.CurrentCamera
-		local targetPos = lockTarget.Character.HumanoidRootPart.Position + Vector3.new(0,2,0)
-		local camPos = cam.CFrame.Position
-		local direction = (targetPos - camPos).Unit
-		cam.CFrame = CFrame.new(camPos, camPos + direction)
-	else
-		lockTarget = nil
+		local closest = getClosestPlayer()
+		if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+			local targetPos = closest.Character.HumanoidRootPart.Position + Vector3.new(0,2,0)
+			local camPos = cam.CFrame.Position
+			local direction = (targetPos - camPos).Unit
+			cam.CFrame = CFrame.new(camPos, camPos + direction)
+		end
 	end
 end)
 
---// VISUALS TAB (ESP with rainbow + hover glow)
+--// VISUALS TAB
 local espEnabled=false
 createButton(visualTab,"Toggle ESP",function()
 	espEnabled=not espEnabled
@@ -215,7 +217,6 @@ createButton(visualTab,"Toggle ESP",function()
 	end
 end)
 
--- Rainbow ESP
 RunService.RenderStepped:Connect(function()
 	if espEnabled then
 		for _,plr in pairs(Players:GetPlayers()) do
@@ -243,6 +244,7 @@ end)
 createButton(settingsTab,"Randomize Buttons Color",function()
 	for _,tab in pairs(Tabs) do
 		tab.Button.BackgroundColor3=Color3.fromRGB(math.random(0,255),math.random(0,255),math.random(0,255))
+		tab.Button.CustomColor=true -- keep persistent color
 	end
 end)
 
