@@ -1,4 +1,4 @@
---// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera
+--// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera + Settings
 
 -- Create ScreenGui
 local gui = Instance.new("ScreenGui")
@@ -81,6 +81,8 @@ end
 local mainTab = createTab("Main")
 local playerTab = createTab("Player")
 local visualTab = createTab("Visuals")
+local settingsTab = createTab("Settings")
+local funTab = createTab("Fun")
 
 --// Buttons Utility
 local function createButton(tab, text, callback)
@@ -235,6 +237,42 @@ createButton(visualTab,"Toggle ESP",function()
             end
         end
     end
+end)
+
+--// SETTINGS TAB
+createButton(settingsTab,"Rainbow Background",function()
+    local run = game:GetService("RunService")
+    local hue = 0
+    run.RenderStepped:Connect(function()
+        hue = (hue + 0.01) % 1
+        mainFrame.BackgroundColor3 = Color3.fromHSV(hue,1,1)
+    end)
+end)
+
+createButton(settingsTab,"Dark Theme",function()
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+end)
+
+createButton(settingsTab,"Invisible UI",function()
+    mainFrame.BackgroundTransparency = 1
+end)
+
+--// FUN TAB
+createButton(funTab,"Spin Character",function()
+    local hrp = player.Character:WaitForChild("HumanoidRootPart")
+    spawn(function()
+        while task.wait(0.03) do
+            if not player.Character or not hrp then break end
+            hrp.CFrame *= CFrame.Angles(0,math.rad(15),0)
+        end
+    end)
+end)
+
+createButton(funTab,"Float",function()
+    local bp = Instance.new("BodyPosition",player.Character.HumanoidRootPart)
+    bp.MaxForce = Vector3.new(0,math.huge,0)
+    bp.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0,5,0)
+    game.Debris:AddItem(bp,5)
 end)
 
 --// OPEN/CLOSE BUTTON
