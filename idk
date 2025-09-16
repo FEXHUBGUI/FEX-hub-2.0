@@ -1,4 +1,4 @@
---// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera + ESP + Settings + Search Tabs
+--// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera + ESP + Settings + Search Tabs + Click Sounds
 
 -- Services
 local RunService = game:GetService("RunService")
@@ -55,6 +55,16 @@ contentFrame.Size = UDim2.new(1, -20, 1, -80)
 contentFrame.Position = UDim2.new(0, 10, 0, 80)
 contentFrame.BackgroundTransparency = 1
 
+-- Click Sound Function
+local function playClickSound()
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://9118821731" -- Satisfying click/pop sound
+    sound.Volume = 0.5
+    sound.PlayOnRemove = true
+    sound.Parent = workspace
+    sound:Destroy()
+end
+
 -- Create Tabs
 local Tabs = {}
 local function createTab(name)
@@ -80,6 +90,7 @@ local function createTab(name)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
 
     button.MouseButton1Click:Connect(function()
+        playClickSound()
         for _,t in pairs(Tabs) do
             t.Frame.Visible = false
             t.Button.BackgroundColor3 = Color3.fromRGB(40,40,40)
@@ -131,7 +142,10 @@ local function createButton(tab, text, callback)
         btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
     end)
 
-    btn.MouseButton1Click:Connect(callback)
+    btn.MouseButton1Click:Connect(function()
+        playClickSound()
+        callback()
+    end)
 end
 
 --// MAIN TAB
@@ -377,6 +391,7 @@ Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0,8)
 
 local open = true
 toggleBtn.MouseButton1Click:Connect(function()
+    playClickSound()
     open = not open
     mainFrame.Visible = open
 end)
