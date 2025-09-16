@@ -58,7 +58,7 @@ contentFrame.BackgroundTransparency = 1
 -- Click Sound Function
 local function playClickSound()
     local sound = Instance.new("Sound")
-    sound.SoundId = "rbxassetid://9118821731" -- Satisfying click/pop sound
+    sound.SoundId = "rbxassetid://12221967" -- Updated asset ID
     sound.Volume = 0.5
     sound.PlayOnRemove = true
     sound.Parent = workspace
