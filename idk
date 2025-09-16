@@ -1,159 +1,123 @@
---// Universal GUI Script with Tabs, Open/Close, Animations, ESP, Noclip, Lock-On, Settings (Rainbow/Glow)
-
+--// Services
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+--// Player Setup
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
+local camera = workspace.CurrentCamera
 
---// GUI
+--// ScreenGui
 local gui = Instance.new("ScreenGui")
-gui.Name = "UniversalUI"
-gui.ResetOnSpawn = false
+gui.Name = "CustomGUI"
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- Main Frame
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 500, 0, 300)
-mainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-mainFrame.Visible = true
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = gui
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+--// Tabs
+local tabFrame = Instance.new("Frame")
+tabFrame.Size = UDim2.new(0, 500, 0, 300)
+tabFrame.Position = UDim2.new(0.25, 0, 0.25, 0)
+tabFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+tabFrame.Parent = gui
 
--- Hover glow effect
-mainFrame.MouseEnter:Connect(function()
-	mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-end)
-mainFrame.MouseLeave:Connect(function()
-	mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-end)
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = tabFrame
 
--- Tab Holder
-local tabHolder = Instance.new("Frame", mainFrame)
-tabHolder.Size = UDim2.new(1, 0, 0, 40)
-tabHolder.BackgroundTransparency = 1
+local tabButtons = Instance.new("Frame")
+tabButtons.Size = UDim2.new(1, 0, 0, 40)
+tabButtons.BackgroundTransparency = 1
+tabButtons.Parent = tabFrame
 
-local tabLayout = Instance.new("UIListLayout", tabHolder)
-tabLayout.FillDirection = Enum.FillDirection.Horizontal
-tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-tabLayout.Padding = UDim.new(0, 8)
-
--- Container for tab contents
-local contentFrame = Instance.new("Frame", mainFrame)
-contentFrame.Size = UDim2.new(1, -20, 1, -60)
-contentFrame.Position = UDim2.new(0, 10, 0, 50)
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, -10, 1, -50)
+contentFrame.Position = UDim2.new(0, 5, 0, 45)
 contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = tabFrame
 
--- Tabs system
-local Tabs = {}
+--// UI Layout
+local buttonLayout = Instance.new("UIListLayout")
+buttonLayout.FillDirection = Enum.FillDirection.Horizontal
+buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+buttonLayout.Parent = tabButtons
+
+--// Tab Storage
+local tabs = {}
+local currentTab = nil
+
 local function createTab(name)
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(0, 100, 1, 0)
-	button.Text = name
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = 14
-	button.TextColor3 = Color3.fromRGB(220,220,220)
-	button.BackgroundColor3 = Color3.fromRGB(40,40,40)
-	button.Parent = tabHolder
-	Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
-
-	local tabFrame = Instance.new("ScrollingFrame", contentFrame)
-	tabFrame.Size = UDim2.new(1,0,1,0)
-	tabFrame.Visible = false
-	tabFrame.BackgroundTransparency = 1
-	tabFrame.CanvasSize = UDim2.new(0,0,0,0)
-
-	local layout = Instance.new("UIListLayout", tabFrame)
-	layout.Padding = UDim.new(0,6)
-	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-	button.MouseButton1Click:Connect(function()
-		for _,t in pairs(Tabs) do
-			t.Frame.Visible = false
-			t.Button.BackgroundColor3 = Color3.fromRGB(40,40,40)
-		end
-		tabFrame.Visible = true
-		button.BackgroundColor3 = Color3.fromRGB(70,70,70)
-	end)
-
-	local tabData = {Button = button, Frame = tabFrame}
-	table.insert(Tabs, tabData)
-	if #Tabs == 1 then
-		tabFrame.Visible = true
-		button.BackgroundColor3 = Color3.fromRGB(70,70,70)
-	end
-	return tabFrame
-end
-
--- Tabs
-local mainTab = createTab("Main")
-local playerTab = createTab("Player")
-local visualTab = createTab("Visuals")
-local settingsTab = createTab("Settings")
-
--- Utility button creator
-local function createButton(tab, text, callback)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.9,0,0,30)
-	btn.Text = text
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 14
+	btn.Text = name
+	btn.Size = UDim2.new(0, 100, 1, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 	btn.TextColor3 = Color3.new(1,1,1)
-	btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-	btn.Parent = tab
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
-	btn.MouseButton1Click:Connect(callback)
-
-	-- Hover effect
+	btn.Parent = tabButtons
+	
+	local hoverGlow = Instance.new("UIStroke")
+	hoverGlow.Thickness = 2
+	hoverGlow.Color = Color3.fromRGB(0,255,0)
+	hoverGlow.Transparency = 1
+	hoverGlow.Parent = btn
+	
 	btn.MouseEnter:Connect(function()
-		btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+		hoverGlow.Transparency = 0
 	end)
 	btn.MouseLeave:Connect(function()
-		btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+		hoverGlow.Transparency = 1
 	end)
 
-	return btn
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(1,0,1,0)
+	frame.Visible = false
+	frame.BackgroundTransparency = 1
+	frame.Parent = contentFrame
+	
+	btn.MouseButton1Click:Connect(function()
+		if currentTab then currentTab.Visible = false end
+		frame.Visible = true
+		currentTab = frame
+	end)
+	
+	tabs[name] = frame
+	return frame
 end
 
---// MAIN TAB
-createButton(mainTab,"Rejoin",function()
-	game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
-end)
+--// Utility for creating buttons
+local function createButton(tab, text, callback)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 200, 0, 40)
+	btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Text = text
+	btn.Parent = tab
+	
+	local hoverGlow = Instance.new("UIStroke")
+	hoverGlow.Thickness = 2
+	hoverGlow.Color = Color3.fromRGB(255,255,255)
+	hoverGlow.Transparency = 1
+	hoverGlow.Parent = btn
+	
+	btn.MouseEnter:Connect(function()
+		hoverGlow.Transparency = 0
+	end)
+	btn.MouseLeave:Connect(function()
+		hoverGlow.Transparency = 1
+	end)
+	
+	btn.MouseButton1Click:Connect(function()
+		callback()
+		btn.BackgroundColor3 = Color3.fromRGB(math.random(50,255), math.random(50,255), math.random(50,255))
+	end)
+end
 
-createButton(mainTab,"Server Hop",function()
-	local HttpService = game:GetService("HttpService")
-	local TeleportService = game:GetService("TeleportService")
-	local servers = HttpService:JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
-	for _,s in pairs(servers.data) do
-		if s.playing < s.maxPlayers then
-			TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id)
-			break
-		end
-	end
-end)
+--// Tabs
+local playerTab = createTab("Player")
+local settingsTab = createTab("Settings")
 
---// PLAYER TAB
-local noclip = false
-createButton(playerTab,"Toggle Noclip",function()
-	noclip = not noclip
-end)
-RunService.Stepped:Connect(function()
-	if noclip and player.Character then
-		for _,v in pairs(player.Character:GetDescendants()) do
-			if v:IsA("BasePart") then
-				v.CanCollide = false
-			end
-		end
-	end
-end)
-
--- Lock-On Camera
+--============================================================--
+-- Lock-On Feature
 local lockOn = false
 local lockTarget = nil
 local targetHighlight = nil
@@ -176,7 +140,7 @@ end
 local function toggleLockOn()
 	lockOn = not lockOn
 	if not lockOn then
-		workspace.CurrentCamera.CameraSubject = humanoid
+		camera.CameraSubject = humanoid
 		if targetHighlight then targetHighlight:Destroy() targetHighlight=nil end
 	end
 end
@@ -190,17 +154,17 @@ end)
 
 RunService.RenderStepped:Connect(function()
 	if lockOn then
-		local cam = workspace.CurrentCamera
 		local closest = getClosestPlayer()
 		if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
 			lockTarget = closest
-			cam.CameraSubject = humanoid
+			camera.CameraSubject = humanoid -- stays following YOU
 			local targetPos = closest.Character.HumanoidRootPart.Position + Vector3.new(0,2,0)
-			cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
-
+			local camPos = camera.CFrame.Position
+			camera.CFrame = CFrame.new(camPos, targetPos)
+			
+			-- highlight
 			if not targetHighlight then
 				targetHighlight = Instance.new("Highlight")
-				targetHighlight.Name = "LockOnHighlight"
 				targetHighlight.FillTransparency = 0.5
 				targetHighlight.OutlineColor = Color3.fromRGB(0,255,0)
 				targetHighlight.FillColor = Color3.fromRGB(0,100,0)
@@ -212,90 +176,32 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
-createButton(playerTab,"WalkSpeed +",function()
-	player.Character:WaitForChild("Humanoid").WalkSpeed += 5
-end)
-createButton(playerTab,"JumpPower +",function()
-	player.Character:WaitForChild("Humanoid").JumpPower += 10
-end)
-
---// VISUAL TAB (ESP)
-local espEnabled = false
-createButton(visualTab,"Toggle ESP",function()
-	espEnabled = not espEnabled
-	if espEnabled then
-		for _,plr in pairs(Players:GetPlayers()) do
-			if plr ~= player then
-				if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-					local highlight = Instance.new("Highlight")
-					highlight.Name = "ESP_Highlight"
-					highlight.FillTransparency = 0.7
-					highlight.OutlineTransparency = 0
-					highlight.FillColor = Color3.fromRGB(255,0,0)
-					highlight.Adornee = plr.Character
-					highlight.Parent = plr.Character
-
-					local billboard = Instance.new("BillboardGui",plr.Character:WaitForChild("Head"))
-					billboard.Name = "ESP_Tag"
-					billboard.Size = UDim2.new(0,70,0,15)
-					billboard.StudsOffset = Vector3.new(0,2,0)
-					billboard.AlwaysOnTop = true
-
-					local label = Instance.new("TextLabel",billboard)
-					label.Size = UDim2.new(1,0,1,0)
-					label.Text = plr.Name
-					label.TextColor3 = Color3.fromRGB(255,255,255)
-					label.Font = Enum.Font.GothamBold
-					label.TextSize = 11
-					label.BackgroundTransparency = 1
-				end
-			end
-		end
-	else
-		for _,plr in pairs(Players:GetPlayers()) do
-			if plr.Character then
-				if plr.Character:FindFirstChild("ESP_Highlight") then
-					plr.Character.ESP_Highlight:Destroy()
-				end
-				if plr.Character:FindFirstChild("Head") and plr.Character.Head:FindFirstChild("ESP_Tag") then
-					plr.Character.Head.ESP_Tag:Destroy()
-				end
-			end
-		end
-	end
-end)
-
---// SETTINGS TAB
+--============================================================--
+-- Settings Features
 local rainbow = false
-createButton(settingsTab,"Rainbow Mode",function()
+local bgInvisible = false
+
+createButton(settingsTab,"Toggle Rainbow BG",function()
 	rainbow = not rainbow
+	bgInvisible = false
 end)
 
-createButton(settingsTab,"Transparent BG",function()
-	mainFrame.BackgroundTransparency = (mainFrame.BackgroundTransparency==0) and 0.5 or 0
-end)
-
--- Rainbow cycle
-RunService.RenderStepped:Connect(function()
-	if rainbow then
-		local hue = tick() % 5 / 5
-		mainFrame.BackgroundColor3 = Color3.fromHSV(hue,1,1)
+createButton(settingsTab,"Make BG Invisible",function()
+	bgInvisible = not bgInvisible
+	if bgInvisible then
+		tabFrame.BackgroundTransparency = 1
+	else
+		tabFrame.BackgroundTransparency = 0
 	end
 end)
 
---// OPEN/CLOSE BUTTON
-local toggleBtn = Instance.new("TextButton", gui)
-toggleBtn.Size = UDim2.new(0,40,0,40)
-toggleBtn.Position = UDim2.new(0,10,0.5,-20)
-toggleBtn.Text = "☰"
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 20
-toggleBtn.TextColor3 = Color3.new(1,1,1)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0,8)
-
-local open = true
-toggleBtn.MouseButton1Click:Connect(function()
-	open = not open
-	mainFrame.Visible = open
+RunService.RenderStepped:Connect(function()
+	if rainbow and not bgInvisible then
+		local t = tick()
+		tabFrame.BackgroundColor3 = Color3.fromHSV((t % 5) / 5, 1, 1)
+	end
 end)
+
+-- Default open Player tab
+currentTab = playerTab
+playerTab.Visible = true
