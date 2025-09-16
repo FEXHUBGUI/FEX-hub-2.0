@@ -1,4 +1,4 @@
---// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera + ESP Refresh + Settings
+--// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera
 
 -- Create ScreenGui
 local gui = Instance.new("ScreenGui")
@@ -81,7 +81,6 @@ end
 local mainTab = createTab("Main")
 local playerTab = createTab("Player")
 local visualTab = createTab("Visuals")
-local settingsTab = createTab("Settings")
 
 --// Buttons Utility
 local function createButton(tab, text, callback)
@@ -103,7 +102,6 @@ local function createButton(tab, text, callback)
     end)
 
     btn.MouseButton1Click:Connect(callback)
-    return btn
 end
 
 --// MAIN TAB
@@ -138,8 +136,9 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Lock-On Camera
-local lockOnEnabled = false
+-- Lock-On Camera (BODY + HEAD)
+local lockOnBodyEnabled = false
+local lockOnHeadEnabled = false
 local camera = workspace.CurrentCamera
 local player = game.Players.LocalPlayer
 
@@ -157,17 +156,31 @@ local function getClosestPlayer()
     return closest
 end
 
-createButton(playerTab,"Toggle Lock-On",function(btn)
-    lockOnEnabled = not lockOnEnabled
-    btn.Text = lockOnEnabled and "Lock-On (ON)" or "Lock-On (OFF)"
+-- Lock-On BODY Button
+createButton(playerTab,"Lock-On (BODY)",function(btn)
+    lockOnBodyEnabled = not lockOnBodyEnabled
+    lockOnHeadEnabled = false
+    btn.Text = lockOnBodyEnabled and "Lock-On (BODY: ON)" or "Lock-On (BODY: OFF)"
 end)
 
+-- Lock-On HEAD Button
+createButton(playerTab,"Lock-On (HEAD)",function(btn)
+    lockOnHeadEnabled = not lockOnHeadEnabled
+    lockOnBodyEnabled = false
+    btn.Text = lockOnHeadEnabled and "Lock-On (HEAD: ON)" or "Lock-On (HEAD: OFF)"
+end)
+
+-- Update camera every frame
 game:GetService("RunService").RenderStepped:Connect(function()
-    if lockOnEnabled then
-        local closest = getClosestPlayer()
-        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+    local closest = getClosestPlayer()
+    if closest and closest.Character then
+        if lockOnBodyEnabled and closest.Character:FindFirstChild("HumanoidRootPart") then
             local target = closest.Character.HumanoidRootPart.Position
-            camera.CameraSubject = player.Character:FindFirstChild("Humanoid") -- stays following you
+            camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
+            camera.CFrame = CFrame.new(camera.CFrame.Position, target)
+        elseif lockOnHeadEnabled and closest.Character:FindFirstChild("Head") then
+            local target = closest.Character.Head.Position
+            camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
             camera.CFrame = CFrame.new(camera.CFrame.Position, target)
         end
     end
@@ -182,92 +195,45 @@ end)
 
 --// VISUAL TAB (ESP)
 local espEnabled = false
-local function addESP(plr)
-    if plr == game.Players.LocalPlayer then return end
-    if not plr.Character or not plr.Character:FindFirstChild("Head") then return end
-    if plr.Character:FindFirstChild("ESP_Highlight") then return end
-
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "ESP_Highlight"
-    highlight.FillTransparency = 0.7
-    highlight.OutlineTransparency = 0
-    highlight.FillColor = Color3.fromRGB(255,0,0)
-    highlight.Adornee = plr.Character
-    highlight.Parent = plr.Character
-
-    local billboard = Instance.new("BillboardGui",plr.Character.Head)
-    billboard.Name = "ESP_Tag"
-    billboard.Size = UDim2.new(0,100,0,20)
-    billboard.StudsOffset = Vector3.new(0,2,0)
-    billboard.AlwaysOnTop = true
-
-    local label = Instance.new("TextLabel",billboard)
-    label.Size = UDim2.new(1,0,1,0)
-    label.Text = plr.Name
-    label.TextColor3 = Color3.fromRGB(255,255,255)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
-    label.BackgroundTransparency = 1
-end
-
-local function clearESP(plr)
-    if plr.Character then
-        if plr.Character:FindFirstChild("ESP_Highlight") then
-            plr.Character.ESP_Highlight:Destroy()
-        end
-        if plr.Character:FindFirstChild("Head") and plr.Character.Head:FindFirstChild("ESP_Tag") then
-            plr.Character.Head.ESP_Tag:Destroy()
-        end
-    end
-end
-
 createButton(visualTab,"Toggle ESP",function()
     espEnabled = not espEnabled
-    if not espEnabled then
+    if espEnabled then
         for _,plr in pairs(game.Players:GetPlayers()) do
-            clearESP(plr)
-        end
-    end
-end)
+            if plr ~= game.Players.LocalPlayer then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "ESP_Highlight"
+                highlight.FillTransparency = 0.7
+                highlight.OutlineTransparency = 0
+                highlight.FillColor = Color3.fromRGB(255,0,0)
+                highlight.Adornee = plr.Character
+                highlight.Parent = plr.Character
 
--- Refresh ESP every second if enabled
-task.spawn(function()
-    while true do
-        if espEnabled then
-            for _,plr in pairs(game.Players:GetPlayers()) do
-                addESP(plr)
+                local billboard = Instance.new("BillboardGui",plr.Character:WaitForChild("Head"))
+                billboard.Name = "ESP_Tag"
+                billboard.Size = UDim2.new(0,100,0,20)
+                billboard.StudsOffset = Vector3.new(0,2,0)
+                billboard.AlwaysOnTop = true
+
+                local label = Instance.new("TextLabel",billboard)
+                label.Size = UDim2.new(1,0,1,0)
+                label.Text = plr.Name
+                label.TextColor3 = Color3.fromRGB(255,255,255)
+                label.Font = Enum.Font.GothamBold
+                label.TextSize = 12
+                label.BackgroundTransparency = 1
             end
         end
-        task.wait(1)
-    end
-end)
-
---// SETTINGS TAB
-local rainbow = false
-createButton(settingsTab,"Toggle Rainbow BG",function(btn)
-    rainbow = not rainbow
-    btn.Text = rainbow and "Rainbow BG (ON)" or "Rainbow BG (OFF)"
-    if rainbow then
-        task.spawn(function()
-            while rainbow do
-                for i=0,1,0.01 do
-                    mainFrame.BackgroundColor3 = Color3.fromHSV(i,1,1)
-                    task.wait(0.03)
+    else
+        for _,plr in pairs(game.Players:GetPlayers()) do
+            if plr.Character then
+                if plr.Character:FindFirstChild("ESP_Highlight") then
+                    plr.Character.ESP_Highlight:Destroy()
+                end
+                if plr.Character:FindFirstChild("Head") and plr.Character.Head:FindFirstChild("ESP_Tag") then
+                    plr.Character.Head.ESP_Tag:Destroy()
                 end
             end
-        end)
-    else
-        mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-    end
-end)
-
-createButton(settingsTab,"Toggle Invisible BG",function(btn)
-    if mainFrame.BackgroundTransparency == 0 then
-        mainFrame.BackgroundTransparency = 0.5
-        btn.Text = "Invisible BG (ON)"
-    else
-        mainFrame.BackgroundTransparency = 0
-        btn.Text = "Invisible BG (OFF)"
+        end
     end
 end)
 
