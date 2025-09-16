@@ -1,197 +1,179 @@
--- Load the Orion Library
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+-- // Universal Hub GUI
+-- Drop this in StarterGui > LocalScript
+-- No HttpGet required, everything is self-contained
 
--- Create the main UI window
-local Window = OrionLib:MakeWindow({
-    Name = "Universal Orion Hub",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "UniversalOrionHub",
-    IntroText = "Welcome to Universal Orion Hub!",
-    Draggable = true
-})
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local UIS = game:GetService("UserInputService")
 
--- Player Tab
-local PlayerTab = Window:MakeTab({
-    Name = "Player",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+local Player = Players.LocalPlayer
 
--- Player Section
-local PlayerSection = PlayerTab:AddSection({Name = "Player Modifications"})
+-- // Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "UniversalHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
 
--- WalkSpeed Slider
-PlayerSection:AddSlider({
-    Name = "Walk Speed",
-    Min = 16,
-    Max = 100,
-    Default = 16,
-    Color = Color3.fromRGB(0, 255, 0),
-    Increment = 1,
-    ValueName = "Speed",
-    Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = Value
+-- // Simple UI system
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 400, 0, 300)
+Frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+Title.Text = "Universal Hub"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Parent = Frame
+
+local TabButtons = Instance.new("Frame")
+TabButtons.Size = UDim2.new(0, 100, 1, -30)
+TabButtons.Position = UDim2.new(0, 0, 0, 30)
+TabButtons.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TabButtons.Parent = Frame
+
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -100, 1, -30)
+Content.Position = UDim2.new(0, 100, 0, 30)
+Content.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Content.Parent = Frame
+
+-- // Helper: Tab system
+local Tabs = {}
+local function CreateTab(name)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 30)
+    Btn.Text = name
+    Btn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Parent = TabButtons
+
+    local Page = Instance.new("ScrollingFrame")
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 600)
+    Page.BackgroundTransparency = 1
+    Page.Visible = false
+    Page.Parent = Content
+
+    Btn.MouseButton1Click:Connect(function()
+        for _,t in pairs(Tabs) do
+            t.Page.Visible = false
         end
-    end
-})
+        Page.Visible = true
+    end)
 
--- Jump Power Slider
-PlayerSection:AddSlider({
-    Name = "Jump Power",
-    Min = 50,
-    Max = 200,
-    Default = 50,
-    Color = Color3.fromRGB(0, 255, 255),
-    Increment = 1,
-    ValueName = "Power",
-    Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.JumpPower = Value
-        end
+    local Tab = {Button = Btn, Page = Page}
+    table.insert(Tabs, Tab)
+    if #Tabs == 1 then
+        Page.Visible = true
     end
-})
-
--- NoClip Toggle
-local noClipEnabled = false
-PlayerSection:AddToggle({
-    Name = "No Clip",
-    Default = false,
-    Callback = function(Value)
-        noClipEnabled = Value
-        local player = game.Players.LocalPlayer
-        if player.Character then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid:ChangeState(Value and Enum.HumanoidStateType.Physics or Enum.HumanoidStateType.GettingUp)
-            end
-        end
-    end
-})
-
--- Teleport to Player Dropdown
-local players = {}
-for _, plr in pairs(game.Players:GetPlayers()) do
-    table.insert(players, plr.Name)
+    return Page
 end
-PlayerSection:AddDropdown({
-    Name = "Teleport to Player",
-    Default = "Select a player",
-    Options = players,
-    Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        local targetPlayer = game.Players:FindFirstChild(Value)
-        if player.Character and targetPlayer and targetPlayer.Character then
-            player.Character:MoveTo(targetPlayer.Character.HumanoidRootPart.Position)
-            OrionLib:MakeNotification({
-                Name = "Teleport",
-                Content = "Teleported to " .. Value,
-                Time = 3
-            })
+
+local function AddButton(tab, text, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -10, 0, 40)
+    Btn.Position = UDim2.new(0, 5, 0, #tab:GetChildren() * 45)
+    Btn.Text = text
+    Btn.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Parent = tab
+    Btn.MouseButton1Click:Connect(callback)
+end
+
+-- // Tabs
+local MainTab = CreateTab("Main")
+local PlayerTab = CreateTab("Player")
+local VisualsTab = CreateTab("Visuals")
+
+-- // Features
+AddButton(MainTab, "Rejoin", function()
+    TeleportService:Teleport(game.PlaceId, Player)
+end)
+
+AddButton(MainTab, "Server Hop", function()
+    local servers = HttpService:JSONDecode(game:HttpGet(
+        "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+    ))
+    for _,s in pairs(servers.data) do
+        if s.playing < s.maxPlayers then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, Player)
+            break
         end
-    end
-})
-
--- ESP Tab
-local ESPTab = Window:MakeTab({
-    Name = "ESP",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- ESP Section
-local ESPSection = ESPTab:AddSection({Name = "ESP Controls"})
-
--- ESP Toggle
-local espEnabled = false
-ESPSection:AddToggle({
-    Name = "Enable ESP",
-    Default = false,
-    Callback = function(Value)
-        espEnabled = Value
-        if Value then
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Parent = player.Character
-                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    highlight.Name = "ESPHighlight"
-                end
-            end
-        else
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-                    player.Character.ESPHighlight:Destroy()
-                end
-            end
-        end
-    end
-})
-
--- Update ESP when players join/leave
-game.Players.PlayerAdded:Connect(function(player)
-    if espEnabled and player ~= game.Players.LocalPlayer and player.Character then
-        local highlight = Instance.new("Highlight")
-        highlight.Parent = player.Character
-        highlight.FillColor = Color3.fromRGB(255, 0, 0)
-        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-        highlight.Name = "ESPHighlight"
     end
 end)
 
-game.Players.PlayerRemoving:Connect(function(player)
-    if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-        player.Character.ESPHighlight:Destroy()
-    end
-end)
-
--- Misc Tab
-local MiscTab = Window:MakeTab({
-    Name = "Misc",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- Misc Section
-local MiscSection = MiscTab:AddSection({Name = "Miscellaneous"})
-
--- Anti-AFK Button
-MiscSection:AddButton({
-    Name = "Enable Anti-AFK",
-    Callback = function()
-        local vu = game:GetService("VirtualUser")
-        game:GetService("Players").LocalPlayer.Idled:Connect(function()
-            vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-            wait(1)
-            vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+AddButton(PlayerTab, "Toggle Noclip", function()
+    if _G.NoclipLoop then
+        _G.NoclipLoop:Disconnect()
+        _G.NoclipLoop = nil
+    else
+        _G.NoclipLoop = RunService.Stepped:Connect(function()
+            if Player.Character then
+                for _,v in pairs(Player.Character:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+            end
         end)
-        OrionLib:MakeNotification({
-            Name = "Anti-AFK",
-            Content = "Anti-AFK enabled!",
-            Time = 3
-        })
     end
-})
+end)
 
--- Destroy UI Button
-MiscSection:AddButton({
-    Name = "Destroy UI",
-    Callback = function()
-        OrionLib:Destroy()
+AddButton(PlayerTab, "Fly (toggle)", function()
+    _G.Flying = not _G.Flying
+    local char = Player.Character or Player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+
+    if _G.Flying then
+        local bg = Instance.new("BodyGyro", hrp)
+        local bv = Instance.new("BodyVelocity", hrp)
+        bg.P = 9e4 bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+        bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+
+        RunService.RenderStepped:Connect(function()
+            if not _G.Flying then
+                bg:Destroy() bv:Destroy()
+                return
+            end
+            local move = hum.MoveDirection
+            bv.Velocity = Vector3.new(move.X*50, (UIS:IsKeyDown(Enum.KeyCode.Space) and 50) or (UIS:IsKeyDown(Enum.KeyCode.LeftControl) and -50) or 0, move.Z*50)
+        end)
     end
-})
+end)
 
--- Initialize the Orion Library
-OrionLib:Init()
-
--- Show welcome notification
-OrionLib:MakeNotification({
-    Name = "Script Loaded",
-    Content = "Universal Orion Hub is now active!",
-    Image = "rbxassetid://4483345998",
-    Time = 5
-})
+AddButton(VisualsTab, "Toggle ESP", function()
+    _G.ESPEnabled = not _G.ESPEnabled
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Head") then
+            if _G.ESPEnabled then
+                if not plr.Character.Head:FindFirstChild("ESP") then
+                    local bb = Instance.new("BillboardGui", plr.Character.Head)
+                    bb.Name = "ESP"
+                    bb.Size = UDim2.new(0,200,0,50)
+                    bb.AlwaysOnTop = true
+                    bb.StudsOffset = Vector3.new(0,2,0)
+                    local lbl = Instance.new("TextLabel", bb)
+                    lbl.Size = UDim2.new(1,0,1,0)
+                    lbl.BackgroundTransparency = 1
+                    lbl.Text = plr.Name
+                    lbl.TextColor3 = Color3.new(1,0,0)
+                    lbl.TextScaled = true
+                end
+            else
+                if plr.Character.Head:FindFirstChild("ESP") then
+                    plr.Character.Head.ESP:Destroy()
+                end
+            end
+        end
+    end
+end)
