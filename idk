@@ -1,227 +1,289 @@
---// Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+--// Universal GUI Script with Tabs, Open/Close, Animations + Lock-On Camera + ESP Refresh + Settings
 
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
-
---// GUI Main
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "UniversalMenu"
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
--- Open/Close Button
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 40, 0, 40)
-ToggleButton.Position = UDim2.new(0, 10, 0.5, -20)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-ToggleButton.Text = "≡"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.Parent = ScreenGui
+-- Create ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "UniversalUI"
+gui.ResetOnSpawn = false
+gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Main Frame
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 500, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.Visible = true
-MainFrame.Parent = ScreenGui
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.Visible = true
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = gui
 
--- Tabs Holder
-local TabBar = Instance.new("Frame")
-TabBar.Size = UDim2.new(1, 0, 0, 40)
-TabBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-TabBar.Parent = MainFrame
+local UICorner = Instance.new("UICorner", mainFrame)
+UICorner.CornerRadius = UDim.new(0, 12)
 
--- Pages Container
-local Pages = Instance.new("Frame")
-Pages.Size = UDim2.new(1, 0, 1, -40)
-Pages.Position = UDim2.new(0, 0, 0, 40)
-Pages.BackgroundTransparency = 1
-Pages.Parent = MainFrame
+-- Tab Buttons Holder
+local tabHolder = Instance.new("Frame", mainFrame)
+tabHolder.Size = UDim2.new(1, 0, 0, 40)
+tabHolder.BackgroundTransparency = 1
 
--- Tab Manager
-local tabs = {}
+local tabLayout = Instance.new("UIListLayout", tabHolder)
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+tabLayout.Padding = UDim.new(0, 8)
+
+-- Container for tab contents
+local contentFrame = Instance.new("Frame", mainFrame)
+contentFrame.Size = UDim2.new(1, -20, 1, -60)
+contentFrame.Position = UDim2.new(0, 10, 0, 50)
+contentFrame.BackgroundTransparency = 1
+
+-- Function to create tabs
+local Tabs = {}
 local function createTab(name)
-    local tabButton = Instance.new("TextButton")
-    tabButton.Size = UDim2.new(0, 100, 1, 0)
-    tabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    tabButton.Text = name
-    tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    tabButton.Parent = TabBar
-    
-    local page = Instance.new("ScrollingFrame")
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.CanvasSize = UDim2.new(0, 0, 0, 0)
-    page.ScrollBarThickness = 4
-    page.Visible = false
-    page.Parent = Pages
-    
-    tabButton.MouseButton1Click:Connect(function()
-        for _, t in pairs(tabs) do
-            t.page.Visible = false
-            t.button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 100, 1, 0)
+    button.Text = name
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 14
+    button.TextColor3 = Color3.fromRGB(220,220,220)
+    button.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    button.Parent = tabHolder
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+
+    local tabFrame = Instance.new("ScrollingFrame", contentFrame)
+    tabFrame.Size = UDim2.new(1,0,1,0)
+    tabFrame.Visible = false
+    tabFrame.BackgroundTransparency = 1
+    tabFrame.CanvasSize = UDim2.new(0,0,0,0)
+
+    local layout = Instance.new("UIListLayout", tabFrame)
+    layout.Padding = UDim.new(0,6)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    button.MouseButton1Click:Connect(function()
+        for _,t in pairs(Tabs) do
+            t.Frame.Visible = false
+            t.Button.BackgroundColor3 = Color3.fromRGB(40,40,40)
         end
-        page.Visible = true
-        tabButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        tabFrame.Visible = true
+        button.BackgroundColor3 = Color3.fromRGB(70,70,70)
     end)
-    
-    table.insert(tabs, {button = tabButton, page = page})
-    if #tabs == 1 then
-        page.Visible = true
-        tabButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+
+    local tabData = {Button = button, Frame = tabFrame}
+    table.insert(Tabs, tabData)
+    if #Tabs == 1 then -- first tab default open
+        tabFrame.Visible = true
+        button.BackgroundColor3 = Color3.fromRGB(70,70,70)
     end
-    tabButton.Position = UDim2.new(0, (#tabs - 1) * 100, 0, 0)
-    return page
+    return tabFrame
 end
 
 --// Tabs
+local mainTab = createTab("Main")
+local playerTab = createTab("Player")
 local visualTab = createTab("Visuals")
-local miscTab = createTab("Misc")
 local settingsTab = createTab("Settings")
 
---// ESP
-local espEnabled = false
-local espObjects = {}
+--// Buttons Utility
+local function createButton(tab, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.9,0,0,30)
+    btn.Text = text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.Parent = tab
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
 
-local function createESP(plr)
-    if plr == player then return end
-    if espObjects[plr] then return end
-    
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0, 100, 0, 40)
-    billboard.AlwaysOnTop = true
-    billboard.Name = "ESPTag"
-    
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 1, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = plr.Name
-    nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-    nameLabel.Font = Enum.Font.SourceSansBold
-    nameLabel.TextScaled = true
-    nameLabel.Parent = billboard
-    
-    espObjects[plr] = billboard
-    
-    if plr.Character and plr.Character:FindFirstChild("Head") then
-        billboard.Parent = plr.Character.Head
-    end
-    
-    plr.CharacterAdded:Connect(function(char)
-        local head = char:WaitForChild("Head", 5)
-        if head then
-            billboard.Parent = head
-        end
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(80,80,80)
     end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    end)
+
+    btn.MouseButton1Click:Connect(callback)
+    return btn
 end
 
-local function refreshESP()
-    if not espEnabled then
-        for _, tag in pairs(espObjects) do
-            tag:Destroy()
+--// MAIN TAB
+createButton(mainTab,"Rejoin",function()
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
+end)
+
+createButton(mainTab,"Server Hop",function()
+    local HttpService = game:GetService("HttpService")
+    local TeleportService = game:GetService("TeleportService")
+    local servers = HttpService:JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+    for _,s in pairs(servers.data) do
+        if s.playing < s.maxPlayers then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id)
+            break
         end
-        espObjects = {}
-        return
-    end
-    for _, plr in pairs(Players:GetPlayers()) do
-        createESP(plr)
-    end
-end
-
--- auto refresh ESP every second
-RunService.Heartbeat:Connect(function()
-    if espEnabled then
-        refreshESP()
     end
 end)
 
--- ESP Toggle Button
-local espButton = Instance.new("TextButton")
-espButton.Size = UDim2.new(0, 200, 0, 40)
-espButton.Position = UDim2.new(0, 10, 0, 10)
-espButton.Text = "Toggle ESP"
-espButton.Parent = visualTab
-espButton.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    refreshESP()
+--// PLAYER TAB
+local noclip = false
+createButton(playerTab,"Toggle Noclip",function()
+    noclip = not noclip
+end)
+game:GetService("RunService").Stepped:Connect(function()
+    if noclip then
+        for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") and v.CanCollide then
+                v.CanCollide = false
+            end
+        end
+    end
 end)
 
---// Lock On
-local lockOn = false
-local lockTarget = nil
+-- Lock-On Camera
+local lockOnEnabled = false
+local camera = workspace.CurrentCamera
+local player = game.Players.LocalPlayer
 
 local function getClosestPlayer()
-    local closest, distance = nil, math.huge
-    for _, plr in pairs(Players:GetPlayers()) do
+    local closest, dist = nil, math.huge
+    for _,plr in pairs(game.Players:GetPlayers()) do
         if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             local mag = (plr.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-            if mag < distance then
+            if mag < dist then
                 closest = plr
-                distance = mag
+                dist = mag
             end
         end
     end
     return closest
 end
 
-local lockButton = Instance.new("TextButton")
-lockButton.Size = UDim2.new(0, 200, 0, 40)
-lockButton.Position = UDim2.new(0, 10, 0, 60)
-lockButton.Text = "Lock On"
-lockButton.Parent = miscTab
-lockButton.MouseButton1Click:Connect(function()
-    lockOn = not lockOn
-    if lockOn then
-        lockButton.Text = "Unlock"
-    else
-        lockButton.Text = "Lock On"
-        camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
-    end
+createButton(playerTab,"Toggle Lock-On",function(btn)
+    lockOnEnabled = not lockOnEnabled
+    btn.Text = lockOnEnabled and "Lock-On (ON)" or "Lock-On (OFF)"
 end)
 
-RunService.RenderStepped:Connect(function()
-    if lockOn then
-        lockTarget = getClosestPlayer()
-        if lockTarget and lockTarget.Character and lockTarget.Character:FindFirstChild("HumanoidRootPart") then
-            camera.CFrame = CFrame.new(camera.CFrame.Position, lockTarget.Character.HumanoidRootPart.Position)
-            camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
+game:GetService("RunService").RenderStepped:Connect(function()
+    if lockOnEnabled then
+        local closest = getClosestPlayer()
+        if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+            local target = closest.Character.HumanoidRootPart.Position
+            camera.CameraSubject = player.Character:FindFirstChild("Humanoid") -- stays following you
+            camera.CFrame = CFrame.new(camera.CFrame.Position, target)
         end
     end
 end)
 
---// Settings Tab
-local rainbow = false
-local function applyRainbow()
-    spawn(function()
-        while rainbow do
-            for i = 0, 1, 0.01 do
-                MainFrame.BackgroundColor3 = Color3.fromHSV(i, 1, 1)
-                RunService.RenderStepped:Wait()
-            end
-        end
-    end)
+createButton(playerTab,"WalkSpeed +",function()
+    game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed += 5
+end)
+createButton(playerTab,"JumpPower +",function()
+    game.Players.LocalPlayer.Character:WaitForChild("Humanoid").JumpPower += 10
+end)
+
+--// VISUAL TAB (ESP)
+local espEnabled = false
+local function addESP(plr)
+    if plr == game.Players.LocalPlayer then return end
+    if not plr.Character or not plr.Character:FindFirstChild("Head") then return end
+    if plr.Character:FindFirstChild("ESP_Highlight") then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESP_Highlight"
+    highlight.FillTransparency = 0.7
+    highlight.OutlineTransparency = 0
+    highlight.FillColor = Color3.fromRGB(255,0,0)
+    highlight.Adornee = plr.Character
+    highlight.Parent = plr.Character
+
+    local billboard = Instance.new("BillboardGui",plr.Character.Head)
+    billboard.Name = "ESP_Tag"
+    billboard.Size = UDim2.new(0,100,0,20)
+    billboard.StudsOffset = Vector3.new(0,2,0)
+    billboard.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel",billboard)
+    label.Size = UDim2.new(1,0,1,0)
+    label.Text = plr.Name
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.BackgroundTransparency = 1
 end
 
-local rainbowButton = Instance.new("TextButton")
-rainbowButton.Size = UDim2.new(0, 200, 0, 40)
-rainbowButton.Position = UDim2.new(0, 10, 0, 10)
-rainbowButton.Text = "Rainbow BG"
-rainbowButton.Parent = settingsTab
-rainbowButton.MouseButton1Click:Connect(function()
-    rainbow = not rainbow
-    if rainbow then
-        applyRainbow()
-    else
-        MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+local function clearESP(plr)
+    if plr.Character then
+        if plr.Character:FindFirstChild("ESP_Highlight") then
+            plr.Character.ESP_Highlight:Destroy()
+        end
+        if plr.Character:FindFirstChild("Head") and plr.Character.Head:FindFirstChild("ESP_Tag") then
+            plr.Character.Head.ESP_Tag:Destroy()
+        end
+    end
+end
+
+createButton(visualTab,"Toggle ESP",function()
+    espEnabled = not espEnabled
+    if not espEnabled then
+        for _,plr in pairs(game.Players:GetPlayers()) do
+            clearESP(plr)
+        end
     end
 end)
 
--- Toggle menu visibility
+-- Refresh ESP every second if enabled
+task.spawn(function()
+    while true do
+        if espEnabled then
+            for _,plr in pairs(game.Players:GetPlayers()) do
+                addESP(plr)
+            end
+        end
+        task.wait(1)
+    end
+end)
+
+--// SETTINGS TAB
+local rainbow = false
+createButton(settingsTab,"Toggle Rainbow BG",function(btn)
+    rainbow = not rainbow
+    btn.Text = rainbow and "Rainbow BG (ON)" or "Rainbow BG (OFF)"
+    if rainbow then
+        task.spawn(function()
+            while rainbow do
+                for i=0,1,0.01 do
+                    mainFrame.BackgroundColor3 = Color3.fromHSV(i,1,1)
+                    task.wait(0.03)
+                end
+            end
+        end)
+    else
+        mainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    end
+end)
+
+createButton(settingsTab,"Toggle Invisible BG",function(btn)
+    if mainFrame.BackgroundTransparency == 0 then
+        mainFrame.BackgroundTransparency = 0.5
+        btn.Text = "Invisible BG (ON)"
+    else
+        mainFrame.BackgroundTransparency = 0
+        btn.Text = "Invisible BG (OFF)"
+    end
+end)
+
+--// OPEN/CLOSE BUTTON
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0,40,0,40)
+toggleBtn.Position = UDim2.new(0,10,0.5,-20)
+toggleBtn.Text = "☰"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 20
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0,8)
+
 local open = true
-ToggleButton.MouseButton1Click:Connect(function()
+toggleBtn.MouseButton1Click:Connect(function()
     open = not open
-    MainFrame.Visible = open
+    mainFrame.Visible = open
 end)
