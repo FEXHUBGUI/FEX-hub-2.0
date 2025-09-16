@@ -1,477 +1,197 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
+-- Load the Orion Library
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- GUI Setup
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "SpeedGUI"
-screenGui.ResetOnSpawn = false
+-- Create the main UI window
+local Window = OrionLib:MakeWindow({
+    Name = "Universal Orion Hub",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "UniversalOrionHub",
+    IntroText = "Welcome to Universal Orion Hub!",
+    Draggable = true
+})
 
--- Main Frame
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 200)
-frame.Position = UDim2.new(0.5, -125, 0.5, -180)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.Active = true
-frame.Draggable = true
-frame.Visible = true
-frame.BackgroundTransparency = 1  -- Hide default background so RGB bg is visible
+-- Player Tab
+local PlayerTab = Window:MakeTab({
+    Name = "Player",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
--- RGB Background (slightly invisible)
-local rgbBackground = Instance.new("Frame", frame)
-rgbBackground.Size = UDim2.new(1, 0, 1, 0)
-rgbBackground.Position = UDim2.new(0, 0, 0, 0)
-rgbBackground.BackgroundTransparency = 0.75  -- Slightly invisible
-rgbBackground.BorderSizePixel = 0
+-- Player Section
+local PlayerSection = PlayerTab:AddSection({Name = "Player Modifications"})
 
--- Background Image
-local background = Instance.new("ImageLabel", frame)
-background.Size = UDim2.new(1, 0, 1, 0)
-background.Image = "rbxassetid://113208146688561"
-background.BackgroundTransparency = 1
-background.ImageTransparency = 0.3
-background.ZIndex = 0
-
--- Title Bar
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 30)
-title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-title.Text = ""
-title.TextTransparency = 1
-title.ZIndex = 1
-
--- Animated Title Text
-local animatedText = Instance.new("TextLabel", title)
-animatedText.Text = "CoreX Hub V1"
-animatedText.Size = UDim2.new(0, 200, 1, 0)
-animatedText.AnchorPoint = Vector2.new(0.5, 0.5)
-animatedText.Position = UDim2.new(0.5, 0, 0.5, 0)
-animatedText.BackgroundTransparency = 1
-animatedText.TextColor3 = Color3.new(1, 1, 1)
-animatedText.Font = Enum.Font.SourceSansBold
-animatedText.TextSize = 20
-animatedText.ZIndex = 2
-
--- Speed Button
-local slider = Instance.new("TextButton", frame)
-slider.Size = UDim2.new(0, 50, 0, 50)
-slider.Position = UDim2.new(0, 25, 0, 45)
-slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-slider.TextColor3 = Color3.new(1, 1, 1)
-slider.Font = Enum.Font.SourceSans
-slider.TextSize = 10
-slider.Text = "Speed: 16"
-slider.ZIndex = 2
-
--- ESP Button
-local espToggle = Instance.new("TextButton", frame)
-espToggle.Size = UDim2.new(0, 50, 0, 50)
-espToggle.Position = UDim2.new(0, 25, 0, 85)
-espToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-espToggle.TextColor3 = Color3.new(1, 1, 1)
-espToggle.Font = Enum.Font.SourceSans
-espToggle.TextSize = 10
-espToggle.Text = "ESP: OFF"
-espToggle.ZIndex = 2
-
--- God Mode Button
-local godToggle = Instance.new("TextButton", frame)
-godToggle.Size = UDim2.new(0, 50, 0, 50)
-godToggle.Position = UDim2.new(0, 25, 0, 125)
-godToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-godToggle.TextColor3 = Color3.new(1, 1, 1)
-godToggle.Font = Enum.Font.SourceSans
-godToggle.TextSize = 10
-godToggle.Text = "God Mode: OFF"
-godToggle.ZIndex = 2
-
--- Helicopter Button
-local heliToggle = Instance.new("TextButton", frame)
-heliToggle.Size = UDim2.new(0, 50, 0, 50)
-heliToggle.Position = UDim2.new(0, 25, 0, 165)
-heliToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-heliToggle.TextColor3 = Color3.new(1, 1, 1)
-heliToggle.Font = Enum.Font.SourceSans
-heliToggle.TextSize = 10
-heliToggle.Text = "Helicopter: OFF"
-heliToggle.ZIndex = 2
-
--- Music System
-local musicSound = Instance.new("Sound", workspace)
-musicSound.Looped = true
-musicSound.Volume = 1
-local musicEnabled = false
-
-local musicInput = Instance.new("TextBox", frame)
-musicInput.Size = UDim2.new(0, 50, 0, 50)
-musicInput.Position = UDim2.new(0, 25, 0, 205)
-musicInput.PlaceholderText = "Enter Sound ID"
-musicInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-musicInput.TextColor3 = Color3.new(1, 1, 1)
-musicInput.Font = Enum.Font.SourceSans
-musicInput.TextSize = 10
-musicInput.Text = ""
-musicInput.Visible = false
-musicInput.ZIndex = 2
-
-local playMusicButton = Instance.new("TextButton", frame)
-playMusicButton.Size = UDim2.new(0, 50, 0, 50)
-playMusicButton.Position = UDim2.new(0, 25, 0, 245)
-playMusicButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-playMusicButton.TextColor3 = Color3.new(1, 1, 1)
-playMusicButton.Font = Enum.Font.SourceSans
-playMusicButton.TextSize = 10
-playMusicButton.Text = "Play Music"
-playMusicButton.Visible = false
-playMusicButton.ZIndex = 2
-
-local musicToggle = Instance.new("TextButton", frame)
-musicToggle.Size = UDim2.new(0, 50, 0, 50)
-musicToggle.Position = UDim2.new(0, 25, 0, 285)
-musicToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-musicToggle.TextColor3 = Color3.new(1, 1, 1)
-musicToggle.Font = Enum.Font.SourceSans
-musicToggle.TextSize = 10
-musicToggle.Text = "Music: OFF"
-musicToggle.ZIndex = 2
-
-musicToggle.MouseButton1Click:Connect(function()
-	musicEnabled = not musicEnabled
-	musicToggle.Text = "Music: " .. (musicEnabled and "ON" or "OFF")
-	musicInput.Visible = musicEnabled
-	playMusicButton.Visible = musicEnabled
-	if not musicEnabled then
-		musicSound:Stop()
-	end
-end)
-
-playMusicButton.MouseButton1Click:Connect(function()
-	local id = musicInput.Text:match("%d+")
-	if id then
-		musicSound.SoundId = "rbxassetid://" .. id
-		musicSound:Play()
-	else
-		warn("Invalid Sound ID")
-	end
-end)
-
--- FPS Boost Button
-local fpsBoostToggle = Instance.new("TextButton", frame)
-fpsBoostToggle.Size = UDim2.new(0, 50, 0, 50)
-fpsBoostToggle.Position = UDim2.new(0, 25, 0, 325)
-fpsBoostToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-fpsBoostToggle.TextColor3 = Color3.new(1, 1, 1)
-fpsBoostToggle.Font = Enum.Font.SourceSans
-fpsBoostToggle.TextSize = 10
-fpsBoostToggle.Text = "FPS Booster: OFF"
-fpsBoostToggle.ZIndex = 2
-
-local fpsBoostEnabled = false
-local lighting = game:GetService("Lighting")
-local runService = game:GetService("RunService")
-
-local originalLightingSettings = {
-	ClockTime = lighting.ClockTime,
-	Brightness = lighting.Brightness,
-	GlobalShadows = lighting.GlobalShadows,
-	ShadowSoftness = lighting.ShadowSoftness,
-	Ambient = lighting.Ambient,
-	OutdoorAmbient = lighting.OutdoorAmbient,
-}
-
-fpsBoostToggle.MouseButton1Click:Connect(function()
-    fpsBoostEnabled = not fpsBoostEnabled
-    fpsBoostToggle.Text = "FPS Boost: " .. (fpsBoostEnabled and "ON" or "OFF")
-
-    if fpsBoostEnabled then
-        -- Apply FPS boost tweaks
-        lighting.ClockTime = 14
-        lighting.Brightness = 1.5  -- Slightly reduce brightness but not zero
-        lighting.GlobalShadows = false
-        lighting.ShadowSoftness = 0
-        lighting.Ambient = Color3.fromRGB(50, 50, 50)        -- Dark gray, not black
-        lighting.OutdoorAmbient = Color3.fromRGB(50, 50, 50) -- Dark gray, not black
-
-        -- Disable unnecessary effects if any
-        if lighting:FindFirstChild("Bloom") then
-            lighting.Bloom.Enabled = false
+-- WalkSpeed Slider
+PlayerSection:AddSlider({
+    Name = "Walk Speed",
+    Min = 16,
+    Max = 100,
+    Default = 16,
+    Color = Color3.fromRGB(0, 255, 0),
+    Increment = 1,
+    ValueName = "Speed",
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = Value
         end
-        if lighting:FindFirstChild("ColorCorrection") then
-            lighting.ColorCorrection.Enabled = false
-        end
-        if lighting:FindFirstChild("SunRays") then
-            lighting.SunRays.Enabled = false
-        end
-        if lighting:FindFirstChild("Blur") then
-            lighting.Blur.Enabled = false
-        end
-        if lighting:FindFirstChild("DepthOfField") then
-            lighting.DepthOfField.Enabled = false
-        end
-    else
-        -- Restore original lighting settings
-        lighting.ClockTime = originalLightingSettings.ClockTime
-        lighting.Brightness = originalLightingSettings.Brightness
-        lighting.GlobalShadows = originalLightingSettings.GlobalShadows
-        lighting.ShadowSoftness = originalLightingSettings.ShadowSoftness
-        lighting.Ambient = originalLightingSettings.Ambient
-        lighting.OutdoorAmbient = originalLightingSettings.OutdoorAmbient
+    end
+})
 
-        -- Re-enable effects if they exist
-        if lighting:FindFirstChild("Bloom") then
-            lighting.Bloom.Enabled = true
+-- Jump Power Slider
+PlayerSection:AddSlider({
+    Name = "Jump Power",
+    Min = 50,
+    Max = 200,
+    Default = 50,
+    Color = Color3.fromRGB(0, 255, 255),
+    Increment = 1,
+    ValueName = "Power",
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.JumpPower = Value
         end
-        if lighting:FindFirstChild("ColorCorrection") then
-            lighting.ColorCorrection.Enabled = true
+    end
+})
+
+-- NoClip Toggle
+local noClipEnabled = false
+PlayerSection:AddToggle({
+    Name = "No Clip",
+    Default = false,
+    Callback = function(Value)
+        noClipEnabled = Value
+        local player = game.Players.LocalPlayer
+        if player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Value and Enum.HumanoidStateType.Physics or Enum.HumanoidStateType.GettingUp)
+            end
         end
-        if lighting:FindFirstChild("SunRays") then
-            lighting.SunRays.Enabled = true
+    end
+})
+
+-- Teleport to Player Dropdown
+local players = {}
+for _, plr in pairs(game.Players:GetPlayers()) do
+    table.insert(players, plr.Name)
+end
+PlayerSection:AddDropdown({
+    Name = "Teleport to Player",
+    Default = "Select a player",
+    Options = players,
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        local targetPlayer = game.Players:FindFirstChild(Value)
+        if player.Character and targetPlayer and targetPlayer.Character then
+            player.Character:MoveTo(targetPlayer.Character.HumanoidRootPart.Position)
+            OrionLib:MakeNotification({
+                Name = "Teleport",
+                Content = "Teleported to " .. Value,
+                Time = 3
+            })
         end
-        if lighting:FindFirstChild("Blur") then
-            lighting.Blur.Enabled = true
+    end
+})
+
+-- ESP Tab
+local ESPTab = Window:MakeTab({
+    Name = "ESP",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- ESP Section
+local ESPSection = ESPTab:AddSection({Name = "ESP Controls"})
+
+-- ESP Toggle
+local espEnabled = false
+ESPSection:AddToggle({
+    Name = "Enable ESP",
+    Default = false,
+    Callback = function(Value)
+        espEnabled = Value
+        if Value then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Parent = player.Character
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    highlight.Name = "ESPHighlight"
+                end
+            end
+        else
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+                    player.Character.ESPHighlight:Destroy()
+                end
+            end
         end
-        if lighting:FindFirstChild("DepthOfField") then
-            lighting.DepthOfField.Enabled = true
-        end
+    end
+})
+
+-- Update ESP when players join/leave
+game.Players.PlayerAdded:Connect(function(player)
+    if espEnabled and player ~= game.Players.LocalPlayer and player.Character then
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = player.Character
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.Name = "ESPHighlight"
     end
 end)
 
--- Toggle GUI Button
-local toggleButton = Instance.new("TextButton", screenGui)
-toggleButton.Size = UDim2.new(0, 120, 0, 30)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextSize = 18
-toggleButton.Text = "Toggle CoreX"
-
-task.spawn(function()
-	while true do
-		toggleButton.BackgroundColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
-		task.wait(0.03)
-	end
+game.Players.PlayerRemoving:Connect(function(player)
+    if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+        player.Character.ESPHighlight:Destroy()
+    end
 end)
 
-toggleButton.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
-end)
+-- Misc Tab
+local MiscTab = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
 
--- Speed logic
-local speeds = {16, 32, 50, 100}
-local index = 1
-slider.MouseButton1Click:Connect(function()
-	index += 1
-	if index > #speeds then index = 1 end
-	local speed = speeds[index]
-	slider.Text = "Speed: " .. speed
-	humanoid.WalkSpeed = speed
-end)
+-- Misc Section
+local MiscSection = MiscTab:AddSection({Name = "Miscellaneous"})
 
--- Rainbow ESP logic
-local espEnabled = false
-local highlights = {}
-local hue = 0
+-- Anti-AFK Button
+MiscSection:AddButton({
+    Name = "Enable Anti-AFK",
+    Callback = function()
+        local vu = game:GetService("VirtualUser")
+        game:GetService("Players").LocalPlayer.Idled:Connect(function()
+            vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            wait(1)
+            vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end)
+        OrionLib:MakeNotification({
+            Name = "Anti-AFK",
+            Content = "Anti-AFK enabled!",
+            Time = 3
+        })
+    end
+})
 
-local function createESP(targetPlayer)
-	if targetPlayer == player then return end
-	if highlights[targetPlayer] then return end
-	local char = targetPlayer.Character
-	if not char then return end
+-- Destroy UI Button
+MiscSection:AddButton({
+    Name = "Destroy UI",
+    Callback = function()
+        OrionLib:Destroy()
+    end
+})
 
-	local highlight = Instance.new("Highlight")
-	highlight.Name = "ESPHighlight"
-	highlight.Adornee = char
-	highlight.FillTransparency = 0.5
-	highlight.OutlineTransparency = 0
-	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	highlight.Parent = char
+-- Initialize the Orion Library
+OrionLib:Init()
 
-	highlights[targetPlayer] = highlight
-end
-
-local function removeESP(targetPlayer)
-	if highlights[targetPlayer] then
-		highlights[targetPlayer]:Destroy()
-		highlights[targetPlayer] = nil
-	end
-end
-
-local function updateESP()
-	hue = (hue + 0.01) % 1 -- Increment hue smoothly
-	for plr, highlight in pairs(highlights) do
-		highlight.FillColor = Color3.fromHSV(hue, 1, 1)
-		highlight.OutlineColor = Color3.fromHSV((hue + 0.5) % 1, 1, 1)
-	end
-
-	for _, plr in pairs(game.Players:GetPlayers()) do
-		if espEnabled then
-			createESP(plr)
-		else
-			removeESP(plr)
-		end
-	end
-end
-
-game.Players.PlayerAdded:Connect(function(p)
-	p.CharacterAdded:Connect(function()
-		if espEnabled then
-			wait(1)
-			createESP(p)
-		end
-	end)
-end)
-
-game.Players.PlayerRemoving:Connect(function(p)
-	removeESP(p)
-end)
-
-espToggle.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-	updateESP()
-end)
-
--- ✅ ESP Auto-Refresh + Rainbow Effect Loop
-task.spawn(function()
-	while true do
-		if espEnabled then
-			updateESP()
-		end
-		task.wait(0.05) -- smooth color update
-	end
-end)
-
--- God Mode logic
-local godMode = false
-task.spawn(function()
-	while true do
-		if godMode then
-			pcall(function()
-				if humanoid and humanoid.Health < humanoid.MaxHealth then
-					humanoid.Health = humanoid.MaxHealth
-				end
-			end)
-		end
-		task.wait(0.1)
-	end
-end)
-
-godToggle.MouseButton1Click:Connect(function()
-	godMode = not godMode
-	godToggle.Text = "God Mode: " .. (godMode and "ON" or "OFF")
-end)
-
--- Helicopter logic
-local helicopterEnabled = false
-local bodyVel = Instance.new("BodyVelocity")
-bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-bodyVel.Velocity = Vector3.new(0, 0, 0)
-
-local crawlAnim = Instance.new("Animation")
-crawlAnim.AnimationId = "rbxassetid://616006778"
-local crawlTrack = humanoid:LoadAnimation(crawlAnim)
-
-heliToggle.MouseButton1Click:Connect(function()
-	helicopterEnabled = not helicopterEnabled
-	heliToggle.Text = "Helicopter: " .. (helicopterEnabled and "ON" or "OFF")
-	if helicopterEnabled then
-		bodyVel.Parent = rootPart
-		bodyVel.Velocity = Vector3.new(0, 50, 0)
-		crawlTrack:Play()
-	else
-		bodyVel.Parent = nil
-		crawlTrack:Stop()
-	end
-end)
-
-player.CharacterAdded:Connect(function(char)
-	character = char
-	humanoid = char:WaitForChild("Humanoid")
-	rootPart = char:WaitForChild("HumanoidRootPart")
-
-	bodyVel = Instance.new("BodyVelocity")
-	bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-	bodyVel.Velocity = Vector3.new(0, 0, 0)
-
-	crawlTrack = humanoid:LoadAnimation(crawlAnim)
-	humanoid.WalkSpeed = speeds[index]
-
-	if helicopterEnabled then
-		bodyVel.Parent = rootPart
-		bodyVel.Velocity = Vector3.new(0, 50, 0)
-		crawlTrack:Play()
-	end
-end)
-
--- Title ripple + color animation
-task.spawn(function()
-	local t = 0
-	while true do
-		t += 0.05
-		local ripple = math.sin(t * 2) * 4
-		local hue = (tick() % 3) / 3
-		animatedText.Position = UDim2.new(0.5, ripple, 0.5, 0)
-		animatedText.TextColor3 = Color3.fromHSV(hue, 1, 1)
-		task.wait(0.016)
-	end
-end)
-
--- FPS & Ping Counter
-local statsLabel = Instance.new("TextLabel", screenGui)
-statsLabel.Size = UDim2.new(0, 200, 0, 20)
-statsLabel.Position = UDim2.new(0, 10, 0, 45)
-statsLabel.BackgroundTransparency = 1
-statsLabel.TextColor3 = Color3.new(1, 1, 1)
-statsLabel.Font = Enum.Font.SourceSansBold
-statsLabel.TextSize = 16
-statsLabel.Text = "FPS: ... | Ping: ..."
-statsLabel.TextXAlignment = Enum.TextXAlignment.Left
-statsLabel.ZIndex = 1000
-
-task.spawn(function()
-	local RunService = game:GetService("RunService")
-	local Stats = game:GetService("Stats")
-	local frameCount = 0
-	local elapsedTime = 0
-	local fps = 60
-
-	while true do
-		local dt = RunService.RenderStepped:Wait()
-		frameCount += 1
-		elapsedTime += dt
-
-		if elapsedTime >= 1 then
-			fps = frameCount
-			frameCount = 0
-			elapsedTime = 0
-		end
-
-		local ping = "..."
-		local success, perfStats = pcall(function()
-			return Stats:FindFirstChild("PerformanceStats")
-		end)
-
-		if success and perfStats then
-			local pingStat = perfStats:FindFirstChild("Ping")
-			if pingStat then
-				ping = math.floor(tonumber(pingStat:GetValue())) .. "ms"
-			end
-		end
-
-		local hue = (tick() % 5) / 5
-		statsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
-		statsLabel.Text = string.format("FPS: %d | Ping: %s", fps, ping)
-	end
-end)
-
--- Animate RGB Background color continuously
-task.spawn(function()
-	local h = 0
-	while true do
-		rgbBackground.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-		h = (h + 0.005) % 1
-		task.wait(0.03)
-	end
-end)
+-- Show welcome notification
+OrionLib:MakeNotification({
+    Name = "Script Loaded",
+    Content = "Universal Orion Hub is now active!",
+    Image = "rbxassetid://4483345998",
+    Time = 5
+})
